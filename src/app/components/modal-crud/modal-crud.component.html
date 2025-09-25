@@ -1,0 +1,73 @@
+<dialog #modal closedby="any">
+  <h2>{{ title }}</h2>
+  <p>{{ message }}</p>
+
+  @if (typeService === 'delete') {
+    <p class="text-danger">Esta acción no se puede deshacer.</p>
+    <div class="d-flex gap-2 justify-content-end">
+      <button type="button" class="btn btn-secondary" (click)="closeModal()">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-danger" (click)="onSubmit()">
+        {{ textButton }}
+      </button>
+    </div>
+  } @else if (typeService === 'edit' || typeService === 'create') {
+    <form (ngSubmit)="onSubmit()" #crudForm="ngForm" novalidate>
+      @for (field of fields; track field.name) {
+        <div class="mb-3">
+          <label [for]="field.name" class="form-label">{{ field.label }}</label>
+          <input
+            [id]="field.name"
+            [name]="field.name"
+            [type]="field.type"
+            [placeholder]="field.placeholder"
+            [required]="field.required"
+            [minlength]="field.min"
+            [maxlength]="field.max"
+            [pattern]="field.pattern"
+            [(ngModel)]="formData[field.name]"
+            class="form-control"
+            [class.is-invalid]="fieldRef.invalid && fieldRef.touched"
+            #fieldRef="ngModel"
+          />
+          @if (fieldRef.invalid && fieldRef.touched) {
+            <div class="text-danger small mt-1">
+              @if (fieldRef.errors?.['required']) {
+                Este campo es requerido
+              }
+              @if (fieldRef.errors?.['email']) {
+                Ingrese un email válido
+              }
+              @if (fieldRef.errors?.['minlength']) {
+                Mínimo {{ field.min }} caracteres
+              }
+              @if (fieldRef.errors?.['maxlength']) {
+                Máximo {{ field.max }} caracteres
+              }
+              @if (fieldRef.errors?.['pattern']) {
+                @if (field.type === 'password') {
+                  La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial
+                } @else {
+                  Formato inválido
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+      <div class="d-flex gap-2 justify-content-end">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="crudForm.invalid">
+          {{ textButton }}
+        </button>
+      </div>
+    </form>
+  } @else if (typeService === 'view') {
+    <div *ngFor="let field of fields" class="mb-3">
+      <strong>{{ field.label }}:</strong> {{ formData[field.name] }}
+    </div>
+  }
+</dialog>
