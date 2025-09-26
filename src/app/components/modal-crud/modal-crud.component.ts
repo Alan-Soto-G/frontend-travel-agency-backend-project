@@ -1,6 +1,7 @@
 import { Component, Input, Output, ViewChild, ElementRef, EventEmitter } from '@angular/core';
 import { FormField } from '../../models/form-field.component';
 import { FormsModule, NgForm } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 /**
  * ModalCrudComponent
@@ -11,7 +12,7 @@ import { FormsModule, NgForm } from '@angular/forms';
  */
 @Component({
   selector: 'app-modal-crud',
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './modal-crud.component.html',
   styleUrl: './modal-crud.component.scss'
 })

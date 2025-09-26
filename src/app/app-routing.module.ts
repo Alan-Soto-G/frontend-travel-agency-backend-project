@@ -3,6 +3,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { AdminComponent } from './components/layout/admin/admin.component';
 import { GuestComponent } from './components/layout/guest/guest.component';
 import { HttpClientModule } from '@angular/common/http';
+import { PermissionsComponent } from './pages/permissions/permissions.component/permissions.component';
+
+
 
 const routes: Routes = [
   {
@@ -33,7 +36,14 @@ const routes: Routes = [
       {
         path: 'users',
         loadComponent: () => import('./pages/users/users.component').then((m) => m.UsersComponent)
-      }
+      },
+          {
+        path: 'permissions',
+        component: PermissionsComponent
+          }
+    
+
+
     ]
   },
   {

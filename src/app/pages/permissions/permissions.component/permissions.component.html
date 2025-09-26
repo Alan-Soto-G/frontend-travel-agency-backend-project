@@ -1,0 +1,13 @@
+<div class="permissions-page">
+  <h1>Gestión de Permisos</h1>
+
+  <app-table-crud
+    [headTable]="headTable"
+    [typeOfCrud]="'permissions'"
+    [itemsData]="itemsData"
+    [data]="permissions"
+    [lenSlice]="4"
+    [arrayFuctions]="arrayFunctions"
+    [fields]="fields">
+  </app-table-crud>
+</div>
