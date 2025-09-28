@@ -40,6 +40,7 @@ export class UsersComponent implements OnInit {
   fields: FormField[] = [
     { name: 'name', label: 'Nombre', type: 'text', placeholder: 'Ingrese el nombre', required: true, min: 3, max: 50 },
     { name: 'email', label: 'Email', type: 'email', placeholder: 'Ingrese el email', required: true, pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$' },
+    { name: 'password', label: 'Contraseña', type: 'password', placeholder: 'Ingresa la contraseña', required: true, min: 8, max: 15, pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\[\\]{};:,.<>?\\\\|`~\\-=\\/]).{8,15}$' },
   ];
 
   /**

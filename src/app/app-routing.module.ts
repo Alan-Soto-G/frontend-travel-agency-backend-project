@@ -3,9 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AdminComponent } from './components/layout/admin/admin.component';
 import { GuestComponent } from './components/layout/guest/guest.component';
 import { HttpClientModule } from '@angular/common/http';
-import { PermissionsComponent } from './pages/permissions/permissions.component/permissions.component';
-
-
+import { PermissionsComponent } from './pages/permissions/permissions.component'
 
 const routes: Routes = [
   {
@@ -41,9 +39,6 @@ const routes: Routes = [
         path: 'permissions',
         component: PermissionsComponent
           }
-    
-
-
     ]
   },
   {

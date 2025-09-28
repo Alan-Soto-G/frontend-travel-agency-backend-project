@@ -43,12 +43,12 @@ export class PermissionsComponent implements OnInit {
    */
 fields: FormField[] = [
   { name: 'url', label: 'URL', type: 'text', placeholder: 'Ej: /api/users', required: true },
-  { 
-    name: 'method', 
-    label: 'Método', 
-    type: 'text', 
-    placeholder: 'Ej: GET', 
-    required: true, 
+  {
+    name: 'method',
+    label: 'Método',
+    type: 'text',
+    placeholder: 'Ej: GET',
+    required: true,
     pattern: '^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)$'  // ✅ solo acepta estos métodos
   }
 ];
