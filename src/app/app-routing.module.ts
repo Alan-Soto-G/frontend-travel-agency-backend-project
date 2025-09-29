@@ -35,10 +35,14 @@ const routes: Routes = [
         path: 'users',
         loadComponent: () => import('./pages/users/users.component').then((m) => m.UsersComponent)
       },
-          {
+      {
+        path: 'roles',
+        loadComponent: () => import('./pages/roles/roles.component').then((m) => m.RolesComponent)
+      },
+      {
         path: 'permissions',
         component: PermissionsComponent
-          }
+      }
     ]
   },
   {
