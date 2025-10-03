@@ -1,55 +1,189 @@
 <div class="auth-main">
   <div class="auth-wrapper v3">
-    <div class="auth-form">
-      <div class="card my-5">
+    <div class="auth-form" [class.night-mode]="isNightTime">
+      <div class="card">
         <div class="card-body">
           <a href="#" class="d-flex justify-content-center">
-            <img src="../../../../assets/images/logo-dark.svg" alt="logo" />
+            <img id="logo" src="../../../../assets/images/logo.svg" alt="logo" />
           </a>
+
           <div class="row">
             <div class="d-flex justify-content-center">
               <div class="auth-header">
-                <h2 class="text-secondary mt-5"><b>Hi, Welcome Back</b></h2>
-                <p class="fs-4 mt-2">Enter your credentials to continue</p>
+                <h2 class="text-secondary mt-4"><b>Hola, ¡Bienvenid&#64; De Nuevo!</b></h2>
+                <p class="fs-4 mt-2">Descubre lo mejor con las siguientes opciones:</p>
               </div>
             </div>
           </div>
+
           <div class="d-grid">
-            <button type="button" class="btn mt-2 btn-light-primary bg-light text-muted">
-              <img src="../../../../assets/images/authentication/google-icon.svg" alt="google" />
-              Sign In With Google
+            <button type="button" class="btn mt-2 bg-white text-muted d-flex justify-content-center align-items-center">
+              <div class="me-md-4">
+                <img class="icon" src="../../../../assets/images/authentication/google-icon.svg" alt="google" />
+                <span>Viaja Con Google</span>
+              </div>
+            </button>
+
+            <button type="button" class="btn mt-2 bg-purple text-white d-flex justify-content-center align-items-center">
+              <div class="me-md-3">
+                <img class="icon" src="../../../../assets/images/authentication/github-icon.svg" alt="github" />
+                <span>Explora Con GitHub</span>
+              </div>
+            </button>
+
+            <button type="button" class="btn mt-2 bg-blue text-white d-flex justify-content-center align-items-center">
+              <div class="ms-md-3">
+                <img class="icon" src="../../../../assets/images/authentication/microsoft-icon.svg" alt="microsoft" />
+                <span>Descubre Con Microsoft</span>
+              </div>
             </button>
           </div>
-          <div class="saprator mt-3">
-            <span>or</span>
+
+          <div class="mt-2 justify-content-center d-flex">
+            <span>o</span>
           </div>
-          <h5 class="my-4 d-flex justify-content-center">Sign in with Email address</h5>
-          <div class="form-floating mb-3">
-            <input type="email" class="form-control" id="floatingInput" value="info@codedthemes.com" />
-            <label for="floatingInput">Email address / Username</label>
-          </div>
-          <div class="form-floating mb-3">
-            <input type="password" class="form-control" id="password" value="12345" />
-            <label for="password">Password</label>
-          </div>
-          <div class="d-flex mt-1 justify-content-between">
-            <div class="form-check">
-              <input class="form-check-input input-primary" type="checkbox" id="customCheckc1" checked="" />
-              <label class="form-check-label text-muted" for="customCheckc1">Remember me</label>
+
+          <h5 class="my-3 d-flex  justify-content-center"><b> Aventúrate con tu correo electrónico:</b></h5>
+
+          <form #loginForm="ngForm" novalidate (ngSubmit)="verificationInfo(loginForm)">
+            <div class="form-floating mb-3">
+              <input type="email"
+                     class="form-control"
+                     id="floatingInput"
+                     name="email"
+                     placeholder="email@ejemplo.com"
+                     required
+                     pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                     [(ngModel)]="loginData.email"
+                     #emailRef="ngModel"
+                     [class.is-invalid]="emailRef.invalid && emailRef.touched"/>
+              <label for="floatingInput">Correo Electrónico</label>
+
+              @if (emailRef.invalid && emailRef.touched) {
+                <div class="text-danger small mt-1">
+                  @if (emailRef.errors?.['required']) {
+                    El correo electrónico es requerido
+                  }
+                  @if (emailRef.errors?.['pattern']) {
+                    Ingrese un correo electrónico válido
+                  }
+                </div>
+              }
             </div>
-            <h5 class="text-secondary">
-              <a href="javascript:">Forgot Password?</a>
-            </h5>
-          </div>
-          <div class="d-grid mt-4">
-            <button type="button" class="btn btn-secondary">Sign In</button>
-          </div>
-          <hr />
-          <h5 class="d-flex justify-content-center">
-            <a [routerLink]="['/register']">Don't have an account?</a>
+
+            <div class="form-floating mb-3">
+              <input type="password"
+                     class="form-control"
+                     id="password"
+                     name="password"
+                     placeholder=""
+                     required
+                     minlength="8"
+                     maxlength="15"
+                     pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};:,.<>?\\|`~\-=\/]).{8,15}$"
+                     [(ngModel)]="loginData.password"
+                     #passwordRef="ngModel"
+                     [class.is-invalid]="passwordRef.invalid && passwordRef.touched"/>
+              <label for="password">Contraseña</label>
+
+              @if (passwordRef.invalid && passwordRef.touched) {
+                <div class="text-danger small mt-1">
+                  @if (passwordRef.errors?.['required']) {
+                    La contraseña es requerida
+                  }
+                  @if (passwordRef.errors?.['minlength']) {
+                    Mínimo 8 caracteres
+                  }
+                  @if (passwordRef.errors?.['maxlength']) {
+                    Máximo 15 caracteres
+                  }
+                  @if (passwordRef.errors?.['pattern']) {
+                    La contraseña debe tener al menos una mayúscula, una minúscula, un número y un carácter especial
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="d-flex mt-1 justify-content-between">
+              <div class="form-check">
+                <input class="form-check-input input-primary" type="checkbox" id="customCheckc1" checked="" />
+                <label class="form-check-label text-muted" for="customCheckc1">Recuérdame</label>
+              </div>
+              <h5 class="text-secondary">
+                <a href="javascript:">Olvidaste Tu Contraseña?</a>
+              </h5>
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-secondary">Iniciar La Aventura</button>
+            </div>
+          </form>
+
+          <h5 class="d-flex justify-content-center mt-3">
+            <a [routerLink]="['/register']">No Tienes Una Cuenta?</a>
           </h5>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<dialog #verifModal class="verifModal">
+  <h2>Código de verificación</h2>
+
+  <p>Por favor, ingresa el código que hemos enviado a tu correo electrónico:</p>
+  <p class="email-highlight">{{this.loginData.email}}</p>
+
+  <div class="code-inputs">
+    <input type="text"
+           maxlength="1"
+           class="code-input"
+           #input1
+           (input)="onCodeInput($event, 1)"
+           (keydown)="onKeyDown($event, 0)"
+           [(ngModel)]="verificationCode[0]">
+    <input type="text"
+           maxlength="1"
+           class="code-input"
+           #input2
+           (input)="onCodeInput($event, 2)"
+           (keydown)="onKeyDown($event, 1)"
+           [(ngModel)]="verificationCode[1]">
+    <input type="text"
+           maxlength="1"
+           class="code-input"
+           #input3
+           (input)="onCodeInput($event, 3)"
+           (keydown)="onKeyDown($event, 2)"
+           [(ngModel)]="verificationCode[2]">
+    <input type="text"
+           maxlength="1"
+           class="code-input"
+           #input4
+           (input)="onCodeInput($event, 4)"
+           (keydown)="onKeyDown($event, 3)"
+           [(ngModel)]="verificationCode[3]">
+    <input type="text"
+           maxlength="1"
+           class="code-input"
+           #input5
+           (input)="onCodeInput($event, 5)"
+           (keydown)="onKeyDown($event, 4)"
+           [(ngModel)]="verificationCode[4]">
+    <input type="text"
+           maxlength="1"
+           class="code-input"
+           #input6
+           (input)="onCodeInput($event, 6)"
+           (keydown)="onKeyDown($event, 5)"
+           [(ngModel)]="verificationCode[5]">
+  </div>
+
+  <button type="button" class="btn bg-purple text-white mt-4" (click)="verifyCode()">
+    Verificar Código
+  </button>
+
+  <button type="button" class="btn btn-outline-secondary mt-2" (click)="closeModal()">
+    Cancelar
+  </button>
+</dialog>

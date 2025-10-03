@@ -1,1 +1,207 @@
-// This file is intentionally left empty to allow customers to add custom CSS if needed.
+.auth-form {
+  background-image: url('/assets/Login/background-login-2.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Cambio automático de fondo según la hora */
+.auth-form.night-mode {
+  background-image: url('/assets/Login/background-login.webp');
+}
+
+.auth-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.35); /* Overlay blanco con opacidad */
+  z-index: 1;
+}
+
+.auth-form > * {
+  position: relative;
+  z-index: 2;
+}
+
+.card{
+  background-color: rgba(255, 255, 255, 0.5); /* Fondo blanco con opacidad */
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#logo{
+  width: 150px;
+  height: auto;
+}
+
+.icon {
+  width: 37px;
+  height: auto;
+}
+
+.bg-purple {
+  background-color: #6f42c1 !important; /* un morado bonito */
+  color: #fff !important;
+}
+
+.bg-blue {
+  background-color: #5da7f6 !important; /* azul estándar */
+  color: #fff !important;
+}
+
+.verifModal {
+  border: none;
+  border-radius: 16px;
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 550px;
+  min-width: 320px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: white;
+}
+
+.verifModal::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.verifModal h2 {
+  color: #6f42c1;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+}
+
+.verifModal p {
+  color: #495057;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.email-highlight {
+  font-weight: 600;
+  color: #6f42c1;
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  margin-bottom: 2rem;
+  word-break: break-all;
+}
+
+.code-inputs {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.5rem, 2vw, 0.75rem);
+  margin: 2rem 0;
+  flex-wrap: nowrap;
+}
+
+.code-input {
+  width: clamp(40px, 10vw, 50px);
+  height: clamp(50px, 12vw, 60px);
+  text-align: center;
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  font-weight: 700;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  color: #212529;
+  flex-shrink: 0;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: #6f42c1;
+  box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.1);
+  transform: scale(1.05);
+}
+
+.code-input:not(:placeholder-shown) {
+  border-color: #6f42c1;
+  background-color: #f3e5f5;
+}
+
+.verifModal .btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.verifModal .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .verifModal {
+    padding: 2rem;
+  }
+
+  .code-inputs {
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .email-highlight {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Móviles */
+@media (max-width: 576px) {
+  .verifModal {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+
+  .verifModal h2 {
+    margin-bottom: 1rem;
+  }
+
+  .code-inputs {
+    gap: 0.4rem;
+    margin: 1.25rem 0;
+  }
+
+  .code-input {
+    width: 40px;
+    height: 50px;
+    font-size: 1.25rem;
+    border-radius: 6px;
+  }
+
+  .verifModal .btn {
+    padding: 0.65rem;
+  }
+
+  .email-highlight {
+    margin-bottom: 1.25rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Móviles muy pequeños */
+@media (max-width: 375px) {
+  .verifModal {
+    padding: 1.25rem;
+  }
+
+  .code-inputs {
+    gap: 0.3rem;
+  }
+
+  .code-input {
+    width: 35px;
+    height: 45px;
+    font-size: 1.15rem;
+  }
+}

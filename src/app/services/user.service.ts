@@ -41,6 +41,16 @@ export class UserService {
   }
 
   /**
+   *
+   * Obtiene un usuario específico por su email.
+   * @param email Email del usuario
+   * @returns Observable con el usuario encontrado
+   */
+  getUserByEmail(email: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/email/${email}`);
+  }
+
+  /**
    * Crea un nuevo usuario en el sistema.
    * @param user Objeto usuario a crear
    * @returns Observable con el usuario creado
