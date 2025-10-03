@@ -9,7 +9,12 @@ import { ChartDataMonthComponent } from 'src/app/components/shared/components/ap
 
 @Component({
   selector: 'app-default',
-  imports: [BajajChartComponent, BarChartComponent, ChartDataMonthComponent, SharedModule],
+  imports: [
+    BajajChartComponent,
+    BarChartComponent,
+    ChartDataMonthComponent,
+    // Agrega aquí los componentes específicos que usas del SharedModule
+  ],
   templateUrl: './default.component.html',
   styleUrls: ['./default.component.scss']
 })

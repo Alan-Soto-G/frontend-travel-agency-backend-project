@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/src/config/db.js">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/config/db.js" />
+              <option name="updatedContent" value="import mysql from 'mysql';&#10;&#10;const db = mysql.createConnection({&#10;    host: 'localhost',&#10;    user: 'root',&#10;    password: '',&#10;    database: 'agencia_viajes'&#10;});&#10;&#10;export default db;&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
