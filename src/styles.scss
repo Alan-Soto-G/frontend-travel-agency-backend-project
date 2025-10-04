@@ -1,19 +1,4 @@
-
-// Custom Theming for Angular Material
-// For more information: https://material.angular.dev/guide/theming
-@use '@angular/material' as mat;
-
-html {
-  @include mat.theme((
-    color: (
-      theme-type: light,
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
-    ),
-    typography: Roboto,
-    density: 0,
-  ));
-}/* You can add global styles to this file, and also import other style files */
+/* You can add global styles to this file, and also import other style files */
 /**======================================================================
 =========================================================================
 Template Name: berry - Most Complete Angular Admin Template
@@ -22,6 +7,10 @@ Support: https://codedthemes.support-hub.io/
 File: style.css
 =========================================================================
 =================================================================================== */
+
+// Global styles
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 // main framework
 @import 'node_modules/bootstrap/scss/functions';
@@ -56,6 +45,3 @@ File: style.css
 @import url('scss/fonts/berry/berry-icons.css'); /** custom font icons - berry **/
 @import 'scss/fonts/tabler-icons.min.css';
 @import 'scss/fonts/phosphor/duotone/style.css';
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
