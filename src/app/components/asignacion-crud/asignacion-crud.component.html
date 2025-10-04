@@ -15,13 +15,31 @@
         <div class="card-body">
           <h6 class="card-title">Buscar por Usuario</h6>
           <div class="d-flex gap-2">
-            <select class="form-select" [(ngModel)]="selectedUserForSearch">
-              <option value="">Seleccionar usuario...</option>
-              <option *ngFor="let user of allUsers" [value]="user._id">
-                {{ user.name }}
-              </option>
-            </select>
-            <button class="btn btn-outline-primary" (click)="searchByUser()" [disabled]="!selectedUserForSearch">
+            <div class="user-search-container position-relative flex-grow-1">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Escribir nombre de usuario..."
+                [(ngModel)]="userSearchText"
+                (input)="onUserSearchTextChange()"
+                (focus)="onUserSearchTextChange()"
+                autocomplete="off">
+
+              <!-- Dropdown de usuarios filtrados -->
+              <div *ngIf="showUserDropdown" class="dropdown-menu show position-absolute w-100" style="z-index: 1000;">
+                <button
+                  *ngFor="let user of filteredUsers"
+                  type="button"
+                  class="dropdown-item"
+                  (click)="selectUserFromDropdown(user)">
+                  {{ user.name }}
+                </button>
+                <div *ngIf="filteredUsers.length === 0" class="dropdown-item-text text-muted">
+                  No se encontraron usuarios
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-outline-primary" (click)="searchByUser()" [disabled]="!selectedUserFromDropdown">
               Buscar
             </button>
           </div>

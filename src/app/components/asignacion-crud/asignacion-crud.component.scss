@@ -82,3 +82,45 @@ table {
 .text-muted {
   color: #6c757d !important;
 }
+
+/* Estilos para el autocompletado de usuarios */
+.user-search-container {
+  position: relative;
+}
+
+.user-search-container .dropdown-menu {
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.user-search-container .dropdown-item {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.user-search-container .dropdown-item:hover {
+  background-color: #e9ecef;
+}
+
+.user-search-container .dropdown-item:focus {
+  background-color: #e9ecef;
+  outline: none;
+}
+
+.user-search-container .dropdown-item-text {
+  padding: 0.5rem 1rem;
+  color: #6c757d;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}

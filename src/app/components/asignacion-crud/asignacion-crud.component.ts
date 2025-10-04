@@ -33,6 +33,12 @@ export class AsignacionCrudComponent {
   private lastSearchedUserId: string = ''; // Para evitar búsquedas duplicadas
   private lastSearchedRoleId: string = ''; // Para evitar búsquedas duplicadas
 
+  // Variables para el autocompletado de usuarios
+  userSearchText: string = '';
+  filteredUsers: User[] = [];
+  showUserDropdown: boolean = false;
+  selectedUserFromDropdown: User | null = null;
+
   /**
    * Abre el modal de administración de roles para un usuario específico
    * @param user Usuario seleccionado
@@ -86,16 +92,45 @@ export class AsignacionCrudComponent {
   }
 
   /**
+   * Filtra los usuarios según el texto de búsqueda
+   */
+  onUserSearchTextChange(): void {
+    if (this.userSearchText.length > 0) {
+      this.filteredUsers = this.allUsers.filter(user =>
+        user.name.toLowerCase().includes(this.userSearchText.toLowerCase())
+      );
+      this.showUserDropdown = this.filteredUsers.length > 0;
+    } else {
+      this.filteredUsers = [];
+      this.showUserDropdown = false;
+    }
+    this.selectedUserFromDropdown = null;
+  }
+
+  /**
+   * Selecciona un usuario de la lista filtrada
+   */
+  selectUserFromDropdown(user: User): void {
+    this.selectedUserFromDropdown = user;
+    this.userSearchText = user.name;
+    this.showUserDropdown = false;
+    this.filteredUsers = [];
+  }
+
+  /**
    * Busca asignaciones por usuario
    */
   searchByUser() {
-    if (this.selectedUserForSearch && this.selectedUserForSearch !== this.lastSearchedUserId) {
-      this.lastSearchedUserId = this.selectedUserForSearch;
-      this.onSearchByUser.emit(this.selectedUserForSearch);
+    if (this.selectedUserFromDropdown && this.selectedUserFromDropdown._id !== this.lastSearchedUserId) {
+      this.lastSearchedUserId = this.selectedUserFromDropdown._id;
+      this.onSearchByUser.emit(this.selectedUserFromDropdown._id);
       // Limpiar formularios después de buscar
-      this.selectedUserForSearch = '';
+      this.userSearchText = '';
+      this.selectedUserFromDropdown = null;
       this.selectedRoleForSearch = '';
       this.lastSearchedRoleId = '';
+      this.showUserDropdown = false;
+      this.filteredUsers = [];
     }
   }
 
@@ -114,16 +149,29 @@ export class AsignacionCrudComponent {
   }
 
   /**
+   * Maneja el click fuera del dropdown para cerrarlo
+   */
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-search-container')) {
+      this.showUserDropdown = false;
+    }
+  }
+
+  /**
    * Maneja el clic en acciones (listar todo)
    * @param action Acción a realizar
    */
   handleActionClick(action: string) {
     if (action === 'listAll') {
       // Limpiar formularios y variables de control
-      this.selectedUserForSearch = '';
+      this.userSearchText = '';
+      this.selectedUserFromDropdown = null;
       this.selectedRoleForSearch = '';
       this.lastSearchedUserId = '';
       this.lastSearchedRoleId = '';
+      this.showUserDropdown = false;
+      this.filteredUsers = [];
       this.onListAll.emit();
     }
   }
