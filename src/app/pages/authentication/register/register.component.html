@@ -14,10 +14,18 @@
               </div>
             </div>
           </div>
-          <button type="button" class="btn mt-2 btn-light-primary bg-light text-muted" style="width: 100%">
-            <img src="../../../../assets/images/authentication/google-icon.svg" alt="google" />
-            Sign Up With Google
-          </button>
+          
+            <button
+              type="button"
+              class="btn mt-2 bg-white text-muted d-flex justify-content-center align-items-center"
+              (click)="loginWithGoogle()"
+            >
+              <div class="me-md-4">
+                <img class="icon" src="../../../../assets/images/authentication/google-icon.svg" alt="google" />
+                <span>Viaja Con Google</span>
+              </div>
+            </button>
+
           <div class="saprator mt-3">
             <span>or</span>
           </div>
@@ -44,6 +52,9 @@
             <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" />
             <label for="floatingInput">Password</label>
           </div>
+
+           <app-recapcha (resolved)="onCaptchaResolved($event)"></app-recapcha>
+
           <div class="form-check mt-3s">
             <input class="form-check-input input-primary" type="checkbox" id="customCheckc1" checked="" />
             <label class="form-check-label" for="customCheckc1">
@@ -54,7 +65,7 @@
             </label>
           </div>
           <div class="d-grid mt-4">
-            <button type="button" class="btn btn-secondary p-2">Sign Up</button>
+            <button type="button" class="btn btn-secondary p-2" [disabled]="!captchaToken">Sign Up</button>
           </div>
           <hr />
           <h5 class="d-flex justify-content-center">

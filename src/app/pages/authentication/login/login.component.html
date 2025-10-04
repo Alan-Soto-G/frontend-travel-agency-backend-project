@@ -17,12 +17,18 @@
           </div>
 
           <div class="d-grid">
-            <button type="button" class="btn mt-2 bg-white text-muted d-flex justify-content-center align-items-center">
+
+            <button
+              type="button"
+              class="btn mt-2 bg-white text-muted d-flex justify-content-center align-items-center"
+              (click)="loginWithGoogle()"
+            >
               <div class="me-md-4">
                 <img class="icon" src="../../../../assets/images/authentication/google-icon.svg" alt="google" />
                 <span>Viaja Con Google</span>
               </div>
             </button>
+
 
             <button type="button" class="btn mt-2 bg-purple text-white d-flex justify-content-center align-items-center">
               <div class="me-md-3">
@@ -104,6 +110,9 @@
               }
             </div>
 
+            <app-recapcha (resolved)="onCaptchaResolved($event)"></app-recapcha>
+
+
             <div class="d-flex mt-1 justify-content-between">
               <div class="form-check">
                 <input class="form-check-input input-primary" type="checkbox" id="customCheckc1" checked="" />
@@ -115,7 +124,7 @@
             </div>
 
             <div class="d-grid mt-4">
-              <button type="submit" class="btn btn-secondary">Iniciar La Aventura</button>
+              <button type="submit" class="btn btn-secondary" [disabled]="!captchaToken">Iniciar La Aventura</button>
             </div>
           </form>
 

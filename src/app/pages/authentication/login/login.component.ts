@@ -1,15 +1,17 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, NgZone } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { LoginModel } from '../../../models/login.model';
 import { User } from '../../../models/user.model';
 import { UserService } from '../../../services/user.service';
+import { RecapchaComponent } from 'src/app/components/recapcha/recapcha.component';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [RouterModule, FormsModule],
+  imports: [RouterModule, FormsModule, RecapchaComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -35,7 +37,9 @@ export class LoginComponent {
 
   constructor(
     private toastr: ToastrService,
-    private userService: UserService
+    private userService: UserService,
+    private ngZone: NgZone,
+    private authService: AuthService
   ) {}
 
   get isNightTime(): boolean {
@@ -106,6 +110,7 @@ export class LoginComponent {
       return;
     }
 
+
     const code = this.verificationCode.join('');
     console.log('Código ingresado:', code);
 
@@ -123,4 +128,28 @@ export class LoginComponent {
   private isCodeComplete(): boolean {
     return this.verificationCode.every(digit => digit !== '');
   }
+
+
+
+  captchaToken: string | null = null;
+
+  onCaptchaResolved(token: string) {
+    this.ngZone.run(() => {
+      console.log('Captcha resuelto:', token);
+      this.captchaToken = token;
+    });
+  }
+
+async loginWithGoogle() {
+  const result = await this.authService.loginWithGoogle();
+
+  if (result) {
+    console.log('Usuario autenticado:', result);
+    this.toastr.success('¡Bienvenido con Google!');
+    // Aquí luego podrás redirigir o guardar datos
+  } else {
+    this.toastr.error('Error al iniciar con Google');
+  }
+}
+
 }
