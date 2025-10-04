@@ -17,6 +17,7 @@ export class UserRolesComponent implements OnInit {
   users: User[] = [];
   roles: Role[] = [];
   userRoles: Record<string, Role[]> = {}; // userId -> array de roles
+  usersWithRoles: User[] = []; // Solo usuarios que tienen roles asignados
 
   constructor(
     private userRoleService: UserRoleService,
@@ -55,14 +56,38 @@ export class UserRolesComponent implements OnInit {
    * Carga los roles asignados para todos los usuarios.
    */
   private loadUserRolesForAllUsers(): void {
+    let loadedUsersCount = 0;
+
     this.users.forEach(user => {
       this.userRoleService.getUserRolesByUserId(user._id).subscribe({
         next: (userRoles: UserRole[]) => {
-          this.userRoles[user._id] = userRoles.map(ur => ur.role);
+          if (userRoles && userRoles.length > 0) {
+            this.userRoles[user._id] = userRoles.map(ur => ur.role);
+            // Solo agregar usuarios que tienen roles asignados
+            if (!this.usersWithRoles.find(u => u._id === user._id)) {
+              this.usersWithRoles.push(user);
+            }
+          }
+
+          loadedUsersCount++;
+          // Cuando se han cargado todos los usuarios, ordenar la lista
+          if (loadedUsersCount === this.users.length) {
+            this.sortUsersWithRoles();
+          }
         },
-        error: (err) => console.error(`Error al cargar roles para usuario ${user.name}`, err)
+        error: (err) => {
+          console.error(`Error al cargar roles para usuario ${user.name}`, err);
+          loadedUsersCount++;
+        }
       });
     });
+  }
+
+  /**
+   * Ordena los usuarios con roles por nombre
+   */
+  private sortUsersWithRoles(): void {
+    this.usersWithRoles.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
@@ -77,6 +102,11 @@ export class UserRolesComponent implements OnInit {
           // Actualizar la lista local
           if (!this.userRoles[event.user._id]) {
             this.userRoles[event.user._id] = [];
+            // Si es el primer rol del usuario, agregarlo a la lista de usuarios con roles
+            if (!this.usersWithRoles.find(u => u._id === event.user._id)) {
+              this.usersWithRoles.push(event.user);
+              this.sortUsersWithRoles();
+            }
           }
           this.userRoles[event.user._id].push(event.role);
           console.log(`Rol ${event.role.name} asignado a ${event.user.name}`);
@@ -92,6 +122,12 @@ export class UserRolesComponent implements OnInit {
             this.userRoles[event.user._id] = this.userRoles[event.user._id].filter(
               role => role._id !== event.role._id
             );
+
+            // Si el usuario ya no tiene roles, removerlo de la lista de usuarios con roles
+            if (this.userRoles[event.user._id].length === 0) {
+              this.usersWithRoles = this.usersWithRoles.filter(u => u._id !== event.user._id);
+              delete this.userRoles[event.user._id];
+            }
           }
           console.log(`Rol ${event.role.name} removido de ${event.user.name}`);
         },

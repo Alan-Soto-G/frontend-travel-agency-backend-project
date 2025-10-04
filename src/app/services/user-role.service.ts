@@ -66,6 +66,6 @@ export class UserRoleService {
    * @returns Observable vacío cuando la operación es exitosa
    */
   deleteUserRole(userId: string, roleId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${userId}/${roleId}`);
+    return this.http.delete<void>(`${this.apiUrl}/user/${userId}/role/${roleId}`);
   }
 }

@@ -11,7 +11,10 @@
       <tr *ngFor="let user of users">
         <td>{{ user.name }}</td>
         <td>
-          <select class="form-control" multiple [size]="1" [disabled]="true">
+          <select class="form-select" disabled>
+            <option *ngIf="userRoles[user._id] && userRoles[user._id].length > 1" value="">
+              {{ userRoles[user._id].length }} roles asignados
+            </option>
             <option *ngFor="let role of userRoles[user._id]" [value]="role._id">
               {{ role.name }}
             </option>
