@@ -19,6 +19,7 @@ export class AsignacionCrudComponent {
   @Input() allUsers: User[] = []; // Todos los usuarios para búsquedas y crear
   @Input() isSearchMode: boolean = false; // Para saber si estamos en modo búsqueda
   @Input() searchType: string = ''; // 'user' o 'role' para saber qué tipo de búsqueda
+  @Input() isLoading: boolean = false; // Para saber si se están cargando datos
   @Output() onRoleToggle = new EventEmitter<{user: User, role: Role, checked: boolean}>();
   @Output() onListAll = new EventEmitter<void>(); // Cambio de onCreateAssignment a onListAll
   @Output() onSearchByUser = new EventEmitter<string>();
@@ -180,7 +181,10 @@ export class AsignacionCrudComponent {
    * Verifica si debe mostrar el mensaje de "Nadie posee este rol"
    */
   shouldShowNoRoleMessage(): boolean {
-    return this.isSearchMode && this.searchType === 'role' && this.users.length === 0;
+    return this.isSearchMode &&
+           this.searchType === 'role' &&
+           this.users.length === 0 &&
+           !this.isLoading; // Solo mostrar si no está cargando
   }
 
   /**

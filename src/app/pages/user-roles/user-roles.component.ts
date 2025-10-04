@@ -21,6 +21,7 @@ export class UserRolesComponent implements OnInit {
   usersWithRoles: User[] = []; // Solo usuarios que tienen roles asignados
   isSearchMode: boolean = false; // Indica si estamos en modo búsqueda
   searchType: string = ''; // 'user' o 'role' para indicar el tipo de búsqueda
+  isLoading: boolean = false; // Indica si se están cargando datos
 
   constructor(
     private userRoleService: UserRoleService,
@@ -199,42 +200,64 @@ export class UserRolesComponent implements OnInit {
    * @param roleId ID del rol a buscar
    */
   onSearchByRole(roleId: string): void {
+    this.isLoading = true; // Iniciar carga
+    this.isSearchMode = true;
+    this.searchType = 'role';
+    this.usersWithRoles = [];
+    this.userRoles = {};
+
     this.userRoleService.getUserRolesByRoleId(roleId).subscribe({
       next: (userRoles: UserRole[]) => {
-        this.isSearchMode = true;
-        this.searchType = 'role';
-        this.usersWithRoles = [];
-        this.userRoles = {};
-
         if (userRoles && userRoles.length > 0) {
-          // Agrupar por usuario
-          const userRoleMap: Record<string, Role[]> = {};
-          const userSet = new Set<string>();
+          // Obtener todos los usuarios que tienen el rol buscado
+          const usersWithSearchedRole = new Set<string>();
 
           userRoles.forEach(ur => {
-            if (!userRoleMap[ur.user._id]) {
-              userRoleMap[ur.user._id] = [];
-            }
-            userRoleMap[ur.user._id].push(ur.role);
-            userSet.add(ur.user._id);
+            usersWithSearchedRole.add(ur.user._id);
           });
 
-          // Crear lista de usuarios y asignaciones
-          userSet.forEach(userId => {
-            const user = this.allUsers.find(u => u._id === userId);
-            if (user) {
-              this.usersWithRoles.push(user);
-              this.userRoles[userId] = userRoleMap[userId];
-            }
-          });
+          // Para cada usuario que tiene el rol buscado, cargar TODOS sus roles
+          let processedUsers = 0;
+          const totalUsers = usersWithSearchedRole.size;
 
-          this.sortUsersWithRoles();
+          usersWithSearchedRole.forEach(userId => {
+            this.userRoleService.getUserRolesByUserId(userId).subscribe({
+              next: (allUserRoles: UserRole[]) => {
+                const user = this.allUsers.find(u => u._id === userId);
+                if (user) {
+                  this.usersWithRoles.push(user);
+                  // Guardar TODOS los roles del usuario, no solo el buscado
+                  this.userRoles[userId] = allUserRoles.map(ur => ur.role);
+                }
+
+                processedUsers++;
+                // Cuando se han procesado todos los usuarios, ordenar la lista y finalizar carga
+                if (processedUsers === totalUsers) {
+                  this.sortUsersWithRoles();
+                  this.isLoading = false; // Finalizar carga aquí
+                }
+              },
+              error: (err) => {
+                console.error(`Error al cargar todos los roles para usuario ${userId}`, err);
+                processedUsers++;
+                if (processedUsers === totalUsers) {
+                  this.sortUsersWithRoles();
+                  this.isLoading = false; // Finalizar carga aquí también en caso de error
+                }
+              }
+            });
+          });
+        } else {
+          // No hay usuarios con este rol, finalizar carga inmediatamente
+          this.isLoading = false;
         }
-        // Si no hay usuarios con este rol, usersWithRoles quedará vacío y se mostrará "Nadie posee este rol"
 
         console.log(`Búsqueda por rol completada: ${userRoles.length} asignaciones encontradas`);
       },
-      error: (err) => console.error('Error al buscar por rol', err)
+      error: (err) => {
+        console.error('Error al buscar por rol', err);
+        this.isLoading = false; // Finalizar carga en caso de error
+      }
     });
   }
 
