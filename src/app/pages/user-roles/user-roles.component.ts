@@ -174,15 +174,19 @@ export class UserRolesComponent implements OnInit {
         this.usersWithRoles = [];
         this.userRoles = {};
 
-        if (userRoles && userRoles.length > 0) {
-          // Encontrar el usuario
-          const user = this.allUsers.find(u => u._id === userId);
-          if (user) {
-            this.usersWithRoles = [user];
+        // Encontrar el usuario siempre (tenga o no roles)
+        const user = this.allUsers.find(u => u._id === userId);
+        if (user) {
+          this.usersWithRoles = [user];
+
+          if (userRoles && userRoles.length > 0) {
+            // Usuario tiene roles asignados
             this.userRoles[userId] = userRoles.map(ur => ur.role);
+          } else {
+            // Usuario no tiene roles asignados - inicializar con array vacío
+            this.userRoles[userId] = [];
           }
         }
-        // Si no hay roles, usersWithRoles quedará vacío y el template mostrará el usuario sin roles
 
         console.log(`Búsqueda por usuario completada: ${userRoles.length} asignaciones encontradas`);
       },
@@ -238,8 +242,13 @@ export class UserRolesComponent implements OnInit {
    * Lista todas las asignaciones (botón "Listar Todo")
    */
   onListAll(): void {
+    // Limpiar completamente el estado antes de recargar
     this.isSearchMode = false;
     this.searchType = '';
+    this.usersWithRoles = [];
+    this.userRoles = {};
+
+    // Recargar todos los datos desde cero
     this.loadData();
     console.log('Cargando todas las asignaciones...');
   }

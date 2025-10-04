@@ -30,6 +30,8 @@ export class AsignacionCrudComponent {
   // Variables para búsquedas
   selectedUserForSearch: string = '';
   selectedRoleForSearch: string = '';
+  private lastSearchedUserId: string = ''; // Para evitar búsquedas duplicadas
+  private lastSearchedRoleId: string = ''; // Para evitar búsquedas duplicadas
 
   /**
    * Abre el modal de administración de roles para un usuario específico
@@ -84,27 +86,16 @@ export class AsignacionCrudComponent {
   }
 
   /**
-   * Maneja el clic en acciones (listar todo)
-   * @param action Acción a realizar
-   */
-  handleActionClick(action: string) {
-    if (action === 'listAll') {
-      // Limpiar formularios
-      this.selectedUserForSearch = '';
-      this.selectedRoleForSearch = '';
-      this.onListAll.emit();
-    }
-  }
-
-  /**
    * Busca asignaciones por usuario
    */
   searchByUser() {
-    if (this.selectedUserForSearch) {
+    if (this.selectedUserForSearch && this.selectedUserForSearch !== this.lastSearchedUserId) {
+      this.lastSearchedUserId = this.selectedUserForSearch;
       this.onSearchByUser.emit(this.selectedUserForSearch);
       // Limpiar formularios después de buscar
       this.selectedUserForSearch = '';
       this.selectedRoleForSearch = '';
+      this.lastSearchedRoleId = '';
     }
   }
 
@@ -112,11 +103,28 @@ export class AsignacionCrudComponent {
    * Busca asignaciones por rol
    */
   searchByRole() {
-    if (this.selectedRoleForSearch) {
+    if (this.selectedRoleForSearch && this.selectedRoleForSearch !== this.lastSearchedRoleId) {
+      this.lastSearchedRoleId = this.selectedRoleForSearch;
       this.onSearchByRole.emit(this.selectedRoleForSearch);
       // Limpiar formularios después de buscar
       this.selectedUserForSearch = '';
       this.selectedRoleForSearch = '';
+      this.lastSearchedUserId = '';
+    }
+  }
+
+  /**
+   * Maneja el clic en acciones (listar todo)
+   * @param action Acción a realizar
+   */
+  handleActionClick(action: string) {
+    if (action === 'listAll') {
+      // Limpiar formularios y variables de control
+      this.selectedUserForSearch = '';
+      this.selectedRoleForSearch = '';
+      this.lastSearchedUserId = '';
+      this.lastSearchedRoleId = '';
+      this.onListAll.emit();
     }
   }
 
