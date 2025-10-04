@@ -1,0 +1,26 @@
+<app-asignacion-crud
+  [entities]="genericEntities"
+  [allEntities]="genericAllEntities"
+  [assignments]="genericAssignments"
+  [entityAssignments]="genericEntityAssignments"
+  [config]="{
+    entityName: 'Usuario',
+    assignmentName: 'Rol',
+    tableTitle: 'UserRoles 📋',
+    entitySearchPlaceholder: 'Escribir nombre de usuario...',
+    assignmentSelectPlaceholder: 'Seleccionar rol...',
+    listAllButtonText: 'Listar Todo',
+    manageButtonText: 'Administrar',
+    noAssignmentsMessage: 'Sin roles asignados',
+    noEntityFoundMessage: 'Nadie posee este rol',
+    modalTitle: 'Administrar roles para {entityName}',
+    lenSlice: 2
+  }"
+  [isSearchMode]="isSearchMode"
+  [searchType]="searchType"
+  [isLoading]="isLoading"
+  (onAssignmentToggle)="onAssignmentToggle($event)"
+  (onListAll)="onListAll()"
+  (onSearchByEntity)="onSearchByEntity($event)"
+  (onSearchByAssignment)="onSearchByAssignment($event)">
+</app-asignacion-crud>

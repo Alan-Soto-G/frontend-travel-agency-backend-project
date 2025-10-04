@@ -1,0 +1,174 @@
+<div class="container mt-4">
+  <!-- Header con título y botón listar todo -->
+  <div id="head">
+    <h2 class="mb-4">{{config.tableTitle}}</h2>
+    <button class="btn btn-success mb-3" (click)="handleActionClick('listAll')">
+      {{config.listAllButtonText}}
+    </button>
+  </div>
+
+  <!-- Formularios de búsqueda -->
+  <div class="row mb-4">
+    <!-- Búsqueda por entidad -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title">Buscar por {{config.entityName}}</h6>
+          <div class="d-flex gap-2">
+            <div class="user-search-container position-relative flex-grow-1">
+              <input
+                type="text"
+                class="form-control"
+                [placeholder]="config.entitySearchPlaceholder"
+                [(ngModel)]="entitySearchText"
+                (input)="onEntitySearchTextChange()"
+                (focus)="onEntitySearchTextChange()"
+                autocomplete="off">
+
+              <!-- Dropdown de entidades filtradas -->
+              <div *ngIf="showEntityDropdown" class="dropdown-menu show position-absolute w-100" style="z-index: 1000;">
+                <button
+                  *ngFor="let entity of filteredEntities"
+                  type="button"
+                  class="dropdown-item"
+                  (click)="selectEntityFromDropdown(entity)">
+                  {{ entity.name }}
+                </button>
+                <div *ngIf="filteredEntities.length === 0" class="dropdown-item-text text-muted">
+                  No se encontraron {{config.entityName.toLowerCase()}}s
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-outline-primary" (click)="searchByEntity()" [disabled]="!selectedEntityFromDropdown">
+              Buscar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Búsqueda por asignación -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title">Buscar por {{config.assignmentName}}</h6>
+          <div class="d-flex gap-2">
+            <select class="form-select" [(ngModel)]="selectedAssignmentForSearch">
+              <option value="">{{config.assignmentSelectPlaceholder}}</option>
+              <option *ngFor="let assignment of assignments" [value]="assignment._id">
+                {{ assignment.name }}
+              </option>
+            </select>
+            <button class="btn btn-outline-primary" (click)="searchByAssignment()" [disabled]="!selectedAssignmentForSearch">
+              Buscar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje cuando no hay resultados para búsqueda por asignación -->
+  <div *ngIf="shouldShowNoAssignmentMessage()" class="alert alert-info text-center">
+    <strong>{{config.noEntityFoundMessage}}</strong>
+  </div>
+
+  <!-- Tabla principal -->
+  <table class="table table-bordered" *ngIf="!shouldShowNoAssignmentMessage()">
+    <thead class="thead-light">
+      <tr>
+        <th>{{config.entityName}}</th>
+        <th>{{config.assignmentName}}s</th>
+        <th>Asignaciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Entidades con asignaciones -->
+      <tr *ngFor="let entity of entities">
+        <td>{{ entity.name }}</td>
+        <td>
+          <select class="form-select readonly-select">
+            <!-- Si tiene más de una asignación, mostrar resumen como primera opción -->
+            <option *ngIf="entityAssignments[entity._id] && entityAssignments[entity._id].length > 1" value="" selected>
+              {{ entityAssignments[entity._id].length }} {{config.assignmentName.toLowerCase()}}s asignados
+            </option>
+            <!-- Si tiene exactamente una asignación, mostrar esa asignación directamente -->
+            <option *ngIf="entityAssignments[entity._id] && entityAssignments[entity._id].length === 1" value="" selected>
+              {{ entityAssignments[entity._id][0].name }}
+            </option>
+            <!-- Mostrar todas las asignaciones individuales -->
+            <option *ngFor="let assignment of entityAssignments[entity._id]" [value]="assignment._id">
+              {{ assignment.name }}
+            </option>
+            <!-- Si no tiene asignaciones -->
+            <option *ngIf="!entityAssignments[entity._id] || entityAssignments[entity._id].length === 0" value="" selected>
+              {{config.noAssignmentsMessage}}
+            </option>
+          </select>
+        </td>
+        <td>
+          <button class="btn btn-primary" (click)="openAssignmentModal(entity)">
+            {{config.manageButtonText}}
+          </button>
+        </td>
+      </tr>
+
+      <!-- Entidad buscada sin asignaciones (solo en búsqueda por entidad) -->
+      <tr *ngIf="shouldShowEntityWithoutAssignments() && getSearchedEntity()">
+        <td>{{ getSearchedEntity()!.name }}</td>
+        <td>
+          <select class="form-select readonly-select">
+            <option value="" selected>{{config.noAssignmentsMessage}}</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn btn-primary" (click)="openAssignmentModal(getSearchedEntity()!)">
+            {{config.manageButtonText}}
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal para administrar asignaciones -->
+<div *ngIf="showModal && selectedEntity"
+     class="modal show"
+     tabindex="-1"
+     style="display: block;"
+     (click)="onBackdropClick($event)">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ getModalTitle() }}</h5>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="role-list">
+          <div class="form-check mb-2" *ngFor="let assignment of assignments">
+            <input class="form-check-input"
+                   type="checkbox"
+                   [id]="'assignment-' + assignment._id"
+                   [checked]="isAssignmentChecked(assignment._id)"
+                   (change)="onToggleAssignment(assignment, $event)">
+            <label class="form-check-label" [for]="'assignment-' + assignment._id">
+              {{ assignment.name }}
+              <small class="text-muted d-block" *ngIf="assignment['description']">{{ assignment['description'] }}</small>
+            </label>
+          </div>
+          <div *ngIf="assignments.length === 0" class="text-muted">
+            No hay {{config.assignmentName.toLowerCase()}}s disponibles
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay del modal -->
+<div *ngIf="showModal" class="modal-backdrop fade show"></div>
