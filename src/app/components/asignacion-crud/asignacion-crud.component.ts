@@ -15,19 +15,7 @@ export class AsignacionCrudComponent {
   @Input() assignments: GenericEntity[] = []; // roles, permisos, etc.
   @Input() entityAssignments: Record<string, GenericEntity[]> = {}; // entityId -> array de assignments
   @Input() allEntities: GenericEntity[] = []; // Todas las entidades para búsquedas
-  @Input() config: AssignmentConfig = {
-    entityName: 'Usuario',
-    assignmentName: 'Rol',
-    tableTitle: 'Asignaciones 📋',
-    entitySearchPlaceholder: 'Escribir nombre...',
-    assignmentSelectPlaceholder: 'Seleccionar...',
-    listAllButtonText: 'Listar Todo',
-    manageButtonText: 'Administrar',
-    noAssignmentsMessage: 'Sin asignaciones',
-    noEntityFoundMessage: 'Nadie posee esta asignación',
-    modalTitle: 'Administrar {assignmentName} para {entityName}',
-    lenSlice: 2
-  };
+  @Input() config!: AssignmentConfig; // Configuración requerida sin valores por defecto
 
   // Estados de la vista
   @Input() isSearchMode: boolean = false;

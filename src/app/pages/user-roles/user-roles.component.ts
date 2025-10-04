@@ -31,21 +31,6 @@ export class UserRolesComponent implements OnInit {
   genericEntityAssignments: Record<string, GenericEntity[]> = {};
   genericAllEntities: GenericEntity[] = [];
 
-  // Configuración para el componente genérico
-  assignmentConfig: AssignmentConfig = {
-    entityName: 'Usuario',
-    assignmentName: 'Rol',
-    tableTitle: 'UserRoles 📋',
-    entitySearchPlaceholder: 'Escribir nombre de usuario...',
-    assignmentSelectPlaceholder: 'Seleccionar rol...',
-    listAllButtonText: 'Listar Todo',
-    manageButtonText: 'Administrar',
-    noAssignmentsMessage: 'Sin roles asignados',
-    noEntityFoundMessage: 'Nadie posee este rol',
-    modalTitle: 'Administrar roles para {entityName}',
-    lenSlice: 2
-  };
-
   constructor(
     private userRoleService: UserRoleService,
     private userService: UserService,
