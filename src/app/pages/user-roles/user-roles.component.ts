@@ -3,6 +3,7 @@ import { AsignacionCrudComponent } from '../../components/asignacion-crud/asigna
 import { User } from '../../models/user.model';
 import { Role } from '../../models/role.model';
 import { UserRole } from '../../models/user-role.model';
+import { GenericEntity, AssignmentConfig } from '../../models/assignment-config.model';
 import { UserRoleService } from "../../services/user-role.service";
 import { UserService } from '../../services/user.service';
 import { RoleService } from '../../services/role.service';
@@ -14,14 +15,36 @@ import { RoleService } from '../../services/role.service';
   styleUrl: './user-roles.component.scss'
 })
 export class UserRolesComponent implements OnInit {
+  // Datos originales
   users: User[] = [];
-  allUsers: User[] = []; // Todos los usuarios para búsquedas y crear
+  allUsers: User[] = [];
   roles: Role[] = [];
-  userRoles: Record<string, Role[]> = {}; // userId -> array de roles
-  usersWithRoles: User[] = []; // Solo usuarios que tienen roles asignados
-  isSearchMode: boolean = false; // Indica si estamos en modo búsqueda
-  searchType: string = ''; // 'user' o 'role' para indicar el tipo de búsqueda
-  isLoading: boolean = false; // Indica si se están cargando datos
+  userRoles: Record<string, Role[]> = {};
+  usersWithRoles: User[] = [];
+  isSearchMode: boolean = false;
+  searchType: string = '';
+  isLoading: boolean = false;
+
+  // Datos genéricos para el componente reutilizable
+  genericEntities: GenericEntity[] = [];
+  genericAssignments: GenericEntity[] = [];
+  genericEntityAssignments: Record<string, GenericEntity[]> = {};
+  genericAllEntities: GenericEntity[] = [];
+
+  // Configuración para el componente genérico
+  assignmentConfig: AssignmentConfig = {
+    entityName: 'Usuario',
+    assignmentName: 'Rol',
+    tableTitle: 'UserRoles 📋',
+    entitySearchPlaceholder: 'Escribir nombre de usuario...',
+    assignmentSelectPlaceholder: 'Seleccionar rol...',
+    listAllButtonText: 'Listar Todo',
+    manageButtonText: 'Administrar',
+    noAssignmentsMessage: 'Sin roles asignados',
+    noEntityFoundMessage: 'Nadie posee este rol',
+    modalTitle: 'Administrar roles para {entityName}',
+    lenSlice: 2
+  };
 
   constructor(
     private userRoleService: UserRoleService,
@@ -29,15 +52,83 @@ export class UserRolesComponent implements OnInit {
     private roleService: RoleService
   ) {}
 
-  /**
-   * Inicializa la carga de datos al iniciar el componente.
-   */
   ngOnInit(): void {
     this.loadData();
   }
 
   /**
-   * Carga todos los datos necesarios: usuarios, roles y asignaciones.
+   * Convierte User[] a GenericEntity[]
+   */
+  private convertUsersToGenericEntities(users: User[]): GenericEntity[] {
+    return users.map(user => ({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      ...user
+    }));
+  }
+
+  /**
+   * Convierte Role[] a GenericEntity[]
+   */
+  private convertRolesToGenericEntities(roles: Role[]): GenericEntity[] {
+    return roles.map(role => ({
+      _id: role._id,
+      name: role.name,
+      description: role.description,
+      ...role
+    }));
+  }
+
+  /**
+   * Convierte userRoles a formato genérico
+   */
+  private convertUserRolesToGeneric(): void {
+    this.genericEntityAssignments = {};
+    Object.keys(this.userRoles).forEach(userId => {
+      this.genericEntityAssignments[userId] = this.convertRolesToGenericEntities(this.userRoles[userId]);
+    });
+  }
+
+  /**
+   * Actualiza los datos genéricos basándose en los datos originales
+   */
+  private updateGenericData(): void {
+    this.genericEntities = this.convertUsersToGenericEntities(this.usersWithRoles);
+    this.genericAllEntities = this.convertUsersToGenericEntities(this.allUsers);
+    this.genericAssignments = this.convertRolesToGenericEntities(this.roles);
+    this.convertUserRolesToGeneric();
+  }
+
+  /**
+   * Maneja el evento de cambio de asignación del componente genérico
+   */
+  onAssignmentToggle(event: {entity: GenericEntity, assignment: GenericEntity, checked: boolean}): void {
+    // Convertir de vuelta a los tipos específicos
+    const user = this.allUsers.find(u => u._id === event.entity._id);
+    const role = this.roles.find(r => r._id === event.assignment._id);
+
+    if (user && role) {
+      this.onRoleToggle({user, role, checked: event.checked});
+    }
+  }
+
+  /**
+   * Maneja la búsqueda por entidad del componente genérico
+   */
+  onSearchByEntity(entityId: string): void {
+    this.onSearchByUser(entityId);
+  }
+
+  /**
+   * Maneja la búsqueda por asignación del componente genérico
+   */
+  onSearchByAssignment(assignmentId: string): void {
+    this.onSearchByRole(assignmentId);
+  }
+
+  /**
+   * Inicializa la carga de datos al iniciar el componente.
    */
   loadData(): void {
     // Cargar usuarios
@@ -52,7 +143,10 @@ export class UserRolesComponent implements OnInit {
 
     // Cargar todos los roles disponibles
     this.roleService.getRoles().subscribe({
-      next: (roles) => this.roles = roles,
+      next: (roles) => {
+        this.roles = roles;
+        this.updateGenericData();
+      },
       error: (err) => console.error('Error al cargar roles', err)
     });
   }
@@ -78,11 +172,15 @@ export class UserRolesComponent implements OnInit {
           // Cuando se han cargado todos los usuarios, ordenar la lista
           if (loadedUsersCount === this.users.length) {
             this.sortUsersWithRoles();
+            this.updateGenericData();
           }
         },
         error: (err) => {
           console.error(`Error al cargar roles para usuario ${user.name}`, err);
           loadedUsersCount++;
+          if (loadedUsersCount === this.users.length) {
+            this.updateGenericData();
+          }
         }
       });
     });
@@ -114,6 +212,7 @@ export class UserRolesComponent implements OnInit {
             }
           }
           this.userRoles[event.user._id].push(event.role);
+          this.updateGenericData();
           console.log(`Rol ${event.role.name} asignado a ${event.user.name}`);
         },
         error: (err) => console.error('Error al crear asignación de rol', err)
@@ -134,6 +233,7 @@ export class UserRolesComponent implements OnInit {
               delete this.userRoles[event.user._id];
             }
           }
+          this.updateGenericData();
           console.log(`Rol ${event.role.name} removido de ${event.user.name}`);
         },
         error: (err) => console.error('Error al eliminar asignación de rol', err)
@@ -171,7 +271,7 @@ export class UserRolesComponent implements OnInit {
     this.userRoleService.getUserRolesByUserId(userId).subscribe({
       next: (userRoles: UserRole[]) => {
         this.isSearchMode = true;
-        this.searchType = 'user';
+        this.searchType = 'entity';
         this.usersWithRoles = [];
         this.userRoles = {};
 
@@ -189,6 +289,7 @@ export class UserRolesComponent implements OnInit {
           }
         }
 
+        this.updateGenericData();
         console.log(`Búsqueda por usuario completada: ${userRoles.length} asignaciones encontradas`);
       },
       error: (err) => console.error('Error al buscar por usuario', err)
@@ -202,7 +303,7 @@ export class UserRolesComponent implements OnInit {
   onSearchByRole(roleId: string): void {
     this.isLoading = true; // Iniciar carga
     this.isSearchMode = true;
-    this.searchType = 'role';
+    this.searchType = 'assignment';
     this.usersWithRoles = [];
     this.userRoles = {};
 
@@ -234,6 +335,7 @@ export class UserRolesComponent implements OnInit {
                 // Cuando se han procesado todos los usuarios, ordenar la lista y finalizar carga
                 if (processedUsers === totalUsers) {
                   this.sortUsersWithRoles();
+                  this.updateGenericData();
                   this.isLoading = false; // Finalizar carga aquí
                 }
               },
@@ -242,6 +344,7 @@ export class UserRolesComponent implements OnInit {
                 processedUsers++;
                 if (processedUsers === totalUsers) {
                   this.sortUsersWithRoles();
+                  this.updateGenericData();
                   this.isLoading = false; // Finalizar carga aquí también en caso de error
                 }
               }
@@ -249,6 +352,7 @@ export class UserRolesComponent implements OnInit {
           });
         } else {
           // No hay usuarios con este rol, finalizar carga inmediatamente
+          this.updateGenericData();
           this.isLoading = false;
         }
 
@@ -274,13 +378,5 @@ export class UserRolesComponent implements OnInit {
     // Recargar todos los datos desde cero
     this.loadData();
     console.log('Cargando todas las asignaciones...');
-  }
-
-  /**
-   * Resetea la vista a mostrar todos los usuarios con roles
-   */
-  resetToAllUsers(): void {
-    this.isSearchMode = false;
-    this.loadData();
   }
 }

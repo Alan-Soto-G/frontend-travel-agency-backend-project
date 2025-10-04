@@ -1,15 +1,14 @@
 <app-asignacion-crud
-  [users]="usersWithRoles"
-  [allUsers]="allUsers"
-  [roles]="roles"
-  [userRoles]="userRoles"
-  [typeOfCrud]="'UserRoles 📋'"
-  [lenSlice]="2"
+  [entities]="genericEntities"
+  [allEntities]="genericAllEntities"
+  [assignments]="genericAssignments"
+  [entityAssignments]="genericEntityAssignments"
+  [config]="assignmentConfig"
   [isSearchMode]="isSearchMode"
   [searchType]="searchType"
   [isLoading]="isLoading"
-  (onRoleToggle)="onRoleToggle($event)"
+  (onAssignmentToggle)="onAssignmentToggle($event)"
   (onListAll)="onListAll()"
-  (onSearchByUser)="onSearchByUser($event)"
-  (onSearchByRole)="onSearchByRole($event)">
+  (onSearchByEntity)="onSearchByEntity($event)"
+  (onSearchByAssignment)="onSearchByAssignment($event)">
 </app-asignacion-crud>

@@ -1,8 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { User } from '../../models/user.model';
-import { Role } from '../../models/role.model';
+import { GenericEntity, AssignmentConfig, AssignmentRelation } from '../../models/assignment-config.model';
 
 @Component({
   selector: 'app-asignacion-crud',
@@ -11,80 +10,91 @@ import { Role } from '../../models/role.model';
   styleUrl: './asignacion-crud.component.scss'
 })
 export class AsignacionCrudComponent {
-  @Input() users: User[] = [];
-  @Input() roles: Role[] = [];
-  @Input() userRoles: Record<string, Role[]> = {};
-  @Input() typeOfCrud: string = '';
-  @Input() lenSlice: number = 2;
-  @Input() allUsers: User[] = []; // Todos los usuarios para búsquedas y crear
-  @Input() isSearchMode: boolean = false; // Para saber si estamos en modo búsqueda
-  @Input() searchType: string = ''; // 'user' o 'role' para saber qué tipo de búsqueda
-  @Input() isLoading: boolean = false; // Para saber si se están cargando datos
-  @Output() onRoleToggle = new EventEmitter<{user: User, role: Role, checked: boolean}>();
-  @Output() onListAll = new EventEmitter<void>(); // Cambio de onCreateAssignment a onListAll
-  @Output() onSearchByUser = new EventEmitter<string>();
-  @Output() onSearchByRole = new EventEmitter<string>();
+  // Datos genéricos
+  @Input() entities: GenericEntity[] = []; // usuarios, proyectos, etc.
+  @Input() assignments: GenericEntity[] = []; // roles, permisos, etc.
+  @Input() entityAssignments: Record<string, GenericEntity[]> = {}; // entityId -> array de assignments
+  @Input() allEntities: GenericEntity[] = []; // Todas las entidades para búsquedas
+  @Input() config: AssignmentConfig = {
+    entityName: 'Usuario',
+    assignmentName: 'Rol',
+    tableTitle: 'Asignaciones 📋',
+    entitySearchPlaceholder: 'Escribir nombre...',
+    assignmentSelectPlaceholder: 'Seleccionar...',
+    listAllButtonText: 'Listar Todo',
+    manageButtonText: 'Administrar',
+    noAssignmentsMessage: 'Sin asignaciones',
+    noEntityFoundMessage: 'Nadie posee esta asignación',
+    modalTitle: 'Administrar {assignmentName} para {entityName}',
+    lenSlice: 2
+  };
 
-  selectedUser: User | null = null;
+  // Estados de la vista
+  @Input() isSearchMode: boolean = false;
+  @Input() searchType: string = ''; // 'entity' o 'assignment'
+  @Input() isLoading: boolean = false;
+
+  // Eventos genéricos
+  @Output() onAssignmentToggle = new EventEmitter<{entity: GenericEntity, assignment: GenericEntity, checked: boolean}>();
+  @Output() onListAll = new EventEmitter<void>();
+  @Output() onSearchByEntity = new EventEmitter<string>();
+  @Output() onSearchByAssignment = new EventEmitter<string>();
+
+  // Estado interno del componente
+  selectedEntity: GenericEntity | null = null;
   showModal = false;
 
   // Variables para búsquedas
-  selectedUserForSearch: string = '';
-  selectedRoleForSearch: string = '';
-  private lastSearchedUserId: string = ''; // Para evitar búsquedas duplicadas
-  private lastSearchedRoleId: string = ''; // Para evitar búsquedas duplicadas
+  selectedEntityForSearch: string = '';
+  selectedAssignmentForSearch: string = '';
+  private lastSearchedEntityId: string = '';
+  private lastSearchedAssignmentId: string = '';
 
-  // Variables para el autocompletado de usuarios
-  userSearchText: string = '';
-  filteredUsers: User[] = [];
-  showUserDropdown: boolean = false;
-  selectedUserFromDropdown: User | null = null;
+  // Variables para el autocompletado de entidades
+  entitySearchText: string = '';
+  filteredEntities: GenericEntity[] = [];
+  showEntityDropdown: boolean = false;
+  selectedEntityFromDropdown: GenericEntity | null = null;
 
   /**
-   * Abre el modal de administración de roles para un usuario específico
-   * @param user Usuario seleccionado
+   * Abre el modal de administración de asignaciones para una entidad específica
    */
-  openRoleModal(user: User) {
-    this.selectedUser = user;
+  openAssignmentModal(entity: GenericEntity) {
+    this.selectedEntity = entity;
     this.showModal = true;
   }
 
   /**
-   * Verifica si un rol está asignado al usuario seleccionado
-   * @param roleId ID del rol a verificar
-   * @returns true si el rol está asignado, false en caso contrario
+   * Verifica si una asignación está asignada a la entidad seleccionada
    */
-  isRoleChecked(roleId: string): boolean {
-    if (!this.selectedUser) return false;
-    return this.userRoles[this.selectedUser._id]?.some(role => role._id === roleId) || false;
+  isAssignmentChecked(assignmentId: string): boolean {
+    if (!this.selectedEntity) return false;
+    return this.entityAssignments[this.selectedEntity._id]?.some(assignment => assignment._id === assignmentId) || false;
   }
 
   /**
-   * Maneja el cambio de estado de un checkbox de rol
-   * @param role Rol que cambió de estado
-   * @param event Evento del checkbox
+   * Maneja el cambio de estado de un checkbox de asignación
    */
-  onToggleRole(role: Role, event: any) {
-    if (!this.selectedUser) return;
+  onToggleAssignment(assignment: GenericEntity, event: any) {
+    if (!this.selectedEntity) return;
 
-    this.onRoleToggle.emit({
-      user: this.selectedUser,
-      role: role,
+    this.onAssignmentToggle.emit({
+      entity: this.selectedEntity,
+      assignment: assignment,
       checked: event.target.checked
     });
   }
 
   /**
-   * Cierra el modal de administración de roles
+   * Cierra el modal
    */
   closeModal() {
     this.showModal = false;
-    this.selectedUser = null;
+    this.selectedEntity = null;
   }
 
   /**
    * Maneja el clic en el backdrop del modal para cerrarlo
-   * @param event Evento del clic
    */
   onBackdropClick(event: Event) {
     if (event.target === event.currentTarget) {
@@ -93,114 +103,113 @@ export class AsignacionCrudComponent {
   }
 
   /**
-   * Filtra los usuarios según el texto de búsqueda
+   * Filtra las entidades según el texto de búsqueda
    */
-  onUserSearchTextChange(): void {
-    if (this.userSearchText.length > 0) {
-      this.filteredUsers = this.allUsers.filter(user =>
-        user.name.toLowerCase().includes(this.userSearchText.toLowerCase())
+  onEntitySearchTextChange(): void {
+    if (this.entitySearchText.length > 0) {
+      this.filteredEntities = this.allEntities.filter(entity =>
+        entity.name.toLowerCase().includes(this.entitySearchText.toLowerCase())
       );
-      this.showUserDropdown = this.filteredUsers.length > 0;
+      this.showEntityDropdown = this.filteredEntities.length > 0;
     } else {
-      this.filteredUsers = [];
-      this.showUserDropdown = false;
+      this.filteredEntities = [];
+      this.showEntityDropdown = false;
     }
-    this.selectedUserFromDropdown = null;
+    this.selectedEntityFromDropdown = null;
   }
 
   /**
-   * Selecciona un usuario de la lista filtrada
+   * Selecciona una entidad de la lista filtrada
    */
-  selectUserFromDropdown(user: User): void {
-    this.selectedUserFromDropdown = user;
-    this.userSearchText = user.name;
-    this.showUserDropdown = false;
-    this.filteredUsers = [];
+  selectEntityFromDropdown(entity: GenericEntity): void {
+    this.selectedEntityFromDropdown = entity;
+    this.entitySearchText = entity.name;
+    this.showEntityDropdown = false;
+    this.filteredEntities = [];
   }
 
   /**
-   * Busca asignaciones por usuario
+   * Busca asignaciones por entidad
    */
-  searchByUser() {
-    if (this.selectedUserFromDropdown && this.selectedUserFromDropdown._id !== this.lastSearchedUserId) {
-      this.lastSearchedUserId = this.selectedUserFromDropdown._id;
-      this.onSearchByUser.emit(this.selectedUserFromDropdown._id);
+  searchByEntity() {
+    if (this.selectedEntityFromDropdown && this.selectedEntityFromDropdown._id !== this.lastSearchedEntityId) {
+      this.lastSearchedEntityId = this.selectedEntityFromDropdown._id;
+      this.onSearchByEntity.emit(this.selectedEntityFromDropdown._id);
       // Limpiar formularios después de buscar
-      this.userSearchText = '';
-      this.selectedUserFromDropdown = null;
-      this.selectedRoleForSearch = '';
-      this.lastSearchedRoleId = '';
-      this.showUserDropdown = false;
-      this.filteredUsers = [];
+      this.entitySearchText = '';
+      this.selectedEntityFromDropdown = null;
+      this.selectedAssignmentForSearch = '';
+      this.lastSearchedAssignmentId = '';
+      this.showEntityDropdown = false;
+      this.filteredEntities = [];
     }
   }
 
   /**
-   * Busca asignaciones por rol
+   * Busca entidades por asignación
    */
-  searchByRole() {
-    if (this.selectedRoleForSearch && this.selectedRoleForSearch !== this.lastSearchedRoleId) {
-      this.lastSearchedRoleId = this.selectedRoleForSearch;
-      this.onSearchByRole.emit(this.selectedRoleForSearch);
+  searchByAssignment() {
+    if (this.selectedAssignmentForSearch && this.selectedAssignmentForSearch !== this.lastSearchedAssignmentId) {
+      this.lastSearchedAssignmentId = this.selectedAssignmentForSearch;
+      this.onSearchByAssignment.emit(this.selectedAssignmentForSearch);
       // Limpiar formularios después de buscar
-      this.selectedUserForSearch = '';
-      this.selectedRoleForSearch = '';
-      this.lastSearchedUserId = '';
-    }
-  }
-
-  /**
-   * Maneja el click fuera del dropdown para cerrarlo
-   */
-  onDocumentClick(event: Event): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.user-search-container')) {
-      this.showUserDropdown = false;
+      this.selectedEntityForSearch = '';
+      this.selectedAssignmentForSearch = '';
+      this.lastSearchedEntityId = '';
     }
   }
 
   /**
    * Maneja el clic en acciones (listar todo)
-   * @param action Acción a realizar
    */
   handleActionClick(action: string) {
     if (action === 'listAll') {
       // Limpiar formularios y variables de control
-      this.userSearchText = '';
-      this.selectedUserFromDropdown = null;
-      this.selectedRoleForSearch = '';
-      this.lastSearchedUserId = '';
-      this.lastSearchedRoleId = '';
-      this.showUserDropdown = false;
-      this.filteredUsers = [];
+      this.entitySearchText = '';
+      this.selectedEntityFromDropdown = null;
+      this.selectedAssignmentForSearch = '';
+      this.lastSearchedEntityId = '';
+      this.lastSearchedAssignmentId = '';
+      this.showEntityDropdown = false;
+      this.filteredEntities = [];
       this.onListAll.emit();
     }
   }
 
   /**
-   * Verifica si debe mostrar el mensaje de "Nadie posee este rol"
+   * Verifica si debe mostrar el mensaje de "Nadie posee esta asignación"
    */
-  shouldShowNoRoleMessage(): boolean {
+  shouldShowNoAssignmentMessage(): boolean {
     return this.isSearchMode &&
-           this.searchType === 'role' &&
-           this.users.length === 0 &&
-           !this.isLoading; // Solo mostrar si no está cargando
+           this.searchType === 'assignment' &&
+           this.entities.length === 0 &&
+           !this.isLoading;
   }
 
   /**
-   * Verifica si debe mostrar la fila de usuario sin roles
+   * Verifica si debe mostrar la fila de entidad sin asignaciones
    */
-  shouldShowUserWithoutRoles(): boolean {
-    return this.isSearchMode && this.searchType === 'user' && this.users.length === 0;
+  shouldShowEntityWithoutAssignments(): boolean {
+    return this.isSearchMode && this.searchType === 'entity' && this.entities.length === 0;
   }
 
   /**
-   * Obtiene el usuario buscado (para mostrar sin roles si no tiene asignaciones)
+   * Obtiene la entidad buscada (para mostrar sin asignaciones si no tiene)
    */
-  getSearchedUser(): User | null {
-    if (this.shouldShowUserWithoutRoles() && this.selectedUserForSearch) {
-      return this.allUsers.find(u => u._id === this.selectedUserForSearch) || null;
+  getSearchedEntity(): GenericEntity | null {
+    if (this.shouldShowEntityWithoutAssignments() && this.selectedEntityForSearch) {
+      return this.allEntities.find(e => e._id === this.selectedEntityForSearch) || null;
     }
     return null;
+  }
+
+  /**
+   * Genera el título del modal dinámicamente
+   */
+  getModalTitle(): string {
+    if (!this.selectedEntity) return '';
+    return this.config.modalTitle
+      .replace('{entityName}', this.selectedEntity.name)
+      .replace('{assignmentName}', this.config.assignmentName);
   }
 }
