@@ -5,8 +5,10 @@
   [userRoles]="userRoles"
   [typeOfCrud]="'UserRoles 📋'"
   [lenSlice]="2"
+  [isSearchMode]="isSearchMode"
+  [searchType]="searchType"
   (onRoleToggle)="onRoleToggle($event)"
-  (onCreateAssignment)="onCreateAssignment($event)"
+  (onListAll)="onListAll()"
   (onSearchByUser)="onSearchByUser($event)"
   (onSearchByRole)="onSearchByRole($event)">
 </app-asignacion-crud>

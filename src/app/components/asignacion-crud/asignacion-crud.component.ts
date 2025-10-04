@@ -17,22 +17,19 @@ export class AsignacionCrudComponent {
   @Input() typeOfCrud: string = '';
   @Input() lenSlice: number = 2;
   @Input() allUsers: User[] = []; // Todos los usuarios para búsquedas y crear
+  @Input() isSearchMode: boolean = false; // Para saber si estamos en modo búsqueda
+  @Input() searchType: string = ''; // 'user' o 'role' para saber qué tipo de búsqueda
   @Output() onRoleToggle = new EventEmitter<{user: User, role: Role, checked: boolean}>();
-  @Output() onCreateAssignment = new EventEmitter<{userId: string, roleId: string}>();
+  @Output() onListAll = new EventEmitter<void>(); // Cambio de onCreateAssignment a onListAll
   @Output() onSearchByUser = new EventEmitter<string>();
   @Output() onSearchByRole = new EventEmitter<string>();
 
   selectedUser: User | null = null;
   showModal = false;
-  showCreateModal = false;
 
   // Variables para búsquedas
   selectedUserForSearch: string = '';
   selectedRoleForSearch: string = '';
-
-  // Variables para crear
-  selectedUserForCreate: string = '';
-  selectedRolesForCreate: Set<string> = new Set();
 
   /**
    * Abre el modal de administración de roles para un usuario específico
@@ -87,77 +84,16 @@ export class AsignacionCrudComponent {
   }
 
   /**
-   * Maneja el clic en acciones (crear)
+   * Maneja el clic en acciones (listar todo)
    * @param action Acción a realizar
    */
   handleActionClick(action: string) {
-    if (action === 'create') {
-      this.openCreateModal();
+    if (action === 'listAll') {
+      // Limpiar formularios
+      this.selectedUserForSearch = '';
+      this.selectedRoleForSearch = '';
+      this.onListAll.emit();
     }
-  }
-
-  /**
-   * Abre el modal de crear asignación
-   */
-  openCreateModal() {
-    this.showCreateModal = true;
-    this.selectedUserForCreate = '';
-    this.selectedRolesForCreate.clear();
-  }
-
-  /**
-   * Cierra el modal de crear asignación
-   */
-  closeCreateModal() {
-    this.showCreateModal = false;
-    this.selectedUserForCreate = '';
-    this.selectedRolesForCreate.clear();
-  }
-
-  /**
-   * Maneja el cambio de rol en el modal de crear
-   * @param roleId ID del rol
-   * @param event Evento del checkbox
-   */
-  onCreateRoleToggle(roleId: string, event: any) {
-    if (event.target.checked) {
-      this.selectedRolesForCreate.add(roleId);
-    } else {
-      this.selectedRolesForCreate.delete(roleId);
-    }
-
-    // Si hay un usuario seleccionado, crear/eliminar asignaciones inmediatamente
-    if (this.selectedUserForCreate) {
-      const role = this.roles.find(r => r._id === roleId);
-      if (role) {
-        this.onCreateAssignment.emit({
-          userId: this.selectedUserForCreate,
-          roleId: roleId
-        });
-      }
-    }
-  }
-
-  /**
-   * Maneja el cambio de usuario en el modal de crear
-   */
-  onUserForCreateChange() {
-    // Cuando cambia el usuario, actualizar los checkboxes según los roles ya asignados
-    this.selectedRolesForCreate.clear();
-    if (this.selectedUserForCreate && this.userRoles[this.selectedUserForCreate]) {
-      this.userRoles[this.selectedUserForCreate].forEach(role => {
-        this.selectedRolesForCreate.add(role._id);
-      });
-    }
-  }
-
-  /**
-   * Verifica si un rol está seleccionado para crear
-   * @param roleId ID del rol
-   * @returns true si está seleccionado
-   */
-  isRoleSelectedForCreate(roleId: string): boolean {
-    return this.selectedRolesForCreate.has(roleId);
   }
 
   /**
@@ -166,6 +102,9 @@ export class AsignacionCrudComponent {
   searchByUser() {
     if (this.selectedUserForSearch) {
       this.onSearchByUser.emit(this.selectedUserForSearch);
+      // Limpiar formularios después de buscar
+      this.selectedUserForSearch = '';
+      this.selectedRoleForSearch = '';
     }
   }
 
@@ -175,16 +114,33 @@ export class AsignacionCrudComponent {
   searchByRole() {
     if (this.selectedRoleForSearch) {
       this.onSearchByRole.emit(this.selectedRoleForSearch);
+      // Limpiar formularios después de buscar
+      this.selectedUserForSearch = '';
+      this.selectedRoleForSearch = '';
     }
   }
 
   /**
-   * Maneja el clic en el backdrop del modal de crear para cerrarlo
-   * @param event Evento del clic
+   * Verifica si debe mostrar el mensaje de "Nadie posee este rol"
    */
-  onCreateBackdropClick(event: Event) {
-    if (event.target === event.currentTarget) {
-      this.closeCreateModal();
+  shouldShowNoRoleMessage(): boolean {
+    return this.isSearchMode && this.searchType === 'role' && this.users.length === 0;
+  }
+
+  /**
+   * Verifica si debe mostrar la fila de usuario sin roles
+   */
+  shouldShowUserWithoutRoles(): boolean {
+    return this.isSearchMode && this.searchType === 'user' && this.users.length === 0;
+  }
+
+  /**
+   * Obtiene el usuario buscado (para mostrar sin roles si no tiene asignaciones)
+   */
+  getSearchedUser(): User | null {
+    if (this.shouldShowUserWithoutRoles() && this.selectedUserForSearch) {
+      return this.allUsers.find(u => u._id === this.selectedUserForSearch) || null;
     }
+    return null;
   }
 }

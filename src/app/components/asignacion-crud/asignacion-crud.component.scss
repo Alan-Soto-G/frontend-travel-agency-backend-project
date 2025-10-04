@@ -6,6 +6,18 @@
   margin-bottom: 1rem;
 }
 
+/* Estilo para selects de solo lectura que se pueden desplegar */
+.readonly-select {
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+
+.readonly-select:focus {
+  background-color: #f8f9fa;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
 /* src/app/components/table-crud/table-crud.component.scss */
 :host {
   display: block;

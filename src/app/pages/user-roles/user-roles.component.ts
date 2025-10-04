@@ -20,6 +20,7 @@ export class UserRolesComponent implements OnInit {
   userRoles: Record<string, Role[]> = {}; // userId -> array de roles
   usersWithRoles: User[] = []; // Solo usuarios que tienen roles asignados
   isSearchMode: boolean = false; // Indica si estamos en modo búsqueda
+  searchType: string = ''; // 'user' o 'role' para indicar el tipo de búsqueda
 
   constructor(
     private userRoleService: UserRoleService,
@@ -169,6 +170,7 @@ export class UserRolesComponent implements OnInit {
     this.userRoleService.getUserRolesByUserId(userId).subscribe({
       next: (userRoles: UserRole[]) => {
         this.isSearchMode = true;
+        this.searchType = 'user';
         this.usersWithRoles = [];
         this.userRoles = {};
 
@@ -180,6 +182,7 @@ export class UserRolesComponent implements OnInit {
             this.userRoles[userId] = userRoles.map(ur => ur.role);
           }
         }
+        // Si no hay roles, usersWithRoles quedará vacío y el template mostrará el usuario sin roles
 
         console.log(`Búsqueda por usuario completada: ${userRoles.length} asignaciones encontradas`);
       },
@@ -195,6 +198,7 @@ export class UserRolesComponent implements OnInit {
     this.userRoleService.getUserRolesByRoleId(roleId).subscribe({
       next: (userRoles: UserRole[]) => {
         this.isSearchMode = true;
+        this.searchType = 'role';
         this.usersWithRoles = [];
         this.userRoles = {};
 
@@ -222,11 +226,22 @@ export class UserRolesComponent implements OnInit {
 
           this.sortUsersWithRoles();
         }
+        // Si no hay usuarios con este rol, usersWithRoles quedará vacío y se mostrará "Nadie posee este rol"
 
         console.log(`Búsqueda por rol completada: ${userRoles.length} asignaciones encontradas`);
       },
       error: (err) => console.error('Error al buscar por rol', err)
     });
+  }
+
+  /**
+   * Lista todas las asignaciones (botón "Listar Todo")
+   */
+  onListAll(): void {
+    this.isSearchMode = false;
+    this.searchType = '';
+    this.loadData();
+    console.log('Cargando todas las asignaciones...');
   }
 
   /**
