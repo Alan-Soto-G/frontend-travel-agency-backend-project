@@ -77,6 +77,17 @@ export class TableCrudComponent {
   @Input() fields: FormField[] = [];
 
   /**
+   * Obtiene el valor de una propiedad anidada de un objeto
+   * @param obj Objeto del cual obtener el valor
+   * @param path Ruta de la propiedad (ej: 'user.name')
+   * @returns El valor de la propiedad
+   */
+  getNestedValue(obj: any, path: string): any {
+    return path.split('.').reduce((current, key) =>
+      current ? current[key] : undefined, obj);
+  }
+
+  /**
    * Maneja el click en las acciones de la tabla (crear, editar, eliminar).
    * Prepara los datos y abre el modal correspondiente.
    * @param action Acción a ejecutar ('create', 'edit', 'delete')
