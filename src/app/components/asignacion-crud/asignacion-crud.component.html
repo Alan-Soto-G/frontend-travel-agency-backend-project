@@ -1,4 +1,56 @@
 <div class="container mt-4">
+  <!-- Header con título y botón crear -->
+  <div id="head">
+    <h2 class="mb-4">{{typeOfCrud}}</h2>
+    <button class="btn btn-primary mb-3" (click)="handleActionClick('create')">
+      Crear {{ typeOfCrud.slice(0, -lenSlice) }}
+    </button>
+  </div>
+
+  <!-- Formularios de búsqueda -->
+  <div class="row mb-4">
+    <!-- Búsqueda por usuario -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title">Buscar por Usuario</h6>
+          <div class="d-flex gap-2">
+            <select class="form-select" [(ngModel)]="selectedUserForSearch">
+              <option value="">Seleccionar usuario...</option>
+              <option *ngFor="let user of allUsers" [value]="user._id">
+                {{ user.name }}
+              </option>
+            </select>
+            <button class="btn btn-outline-primary" (click)="searchByUser()" [disabled]="!selectedUserForSearch">
+              Buscar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Búsqueda por rol -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title">Buscar por Rol</h6>
+          <div class="d-flex gap-2">
+            <select class="form-select" [(ngModel)]="selectedRoleForSearch">
+              <option value="">Seleccionar rol...</option>
+              <option *ngFor="let role of roles" [value]="role._id">
+                {{ role.name }}
+              </option>
+            </select>
+            <button class="btn btn-outline-primary" (click)="searchByRole()" [disabled]="!selectedRoleForSearch">
+              Buscar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla principal -->
   <table class="table table-bordered">
     <thead class="thead-light">
       <tr>
@@ -11,14 +63,14 @@
       <tr *ngFor="let user of users">
         <td>{{ user.name }}</td>
         <td>
-          <select class="form-select" disabled>
-            <option *ngIf="userRoles[user._id] && userRoles[user._id].length > 1" value="">
+          <select class="form-select">
+            <option *ngIf="userRoles[user._id] && userRoles[user._id].length > 1" value="" selected>
               {{ userRoles[user._id].length }} roles asignados
             </option>
             <option *ngFor="let role of userRoles[user._id]" [value]="role._id">
               {{ role.name }}
             </option>
-            <option *ngIf="!userRoles[user._id] || userRoles[user._id].length === 0" value="">
+            <option *ngIf="!userRoles[user._id] || userRoles[user._id].length === 0" value="" selected>
               Sin roles asignados
             </option>
           </select>
@@ -72,5 +124,60 @@
   </div>
 </div>
 
+<!-- Modal para crear asignaciones -->
+<div *ngIf="showCreateModal"
+     class="modal show"
+     tabindex="-1"
+     style="display: block;"
+     (click)="onCreateBackdropClick($event)">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Crear Asignación de Roles</h5>
+        <button type="button" class="btn-close" (click)="closeCreateModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Selector de usuario -->
+        <div class="mb-3">
+          <label for="userSelect" class="form-label">Seleccionar Usuario</label>
+          <select id="userSelect" class="form-select" [(ngModel)]="selectedUserForCreate" (change)="onUserForCreateChange()">
+            <option value="">Seleccionar usuario...</option>
+            <option *ngFor="let user of allUsers" [value]="user._id">
+              {{ user.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Lista de roles -->
+        <div *ngIf="selectedUserForCreate">
+          <label class="form-label">Roles disponibles</label>
+          <div class="role-list">
+            <div class="form-check mb-2" *ngFor="let role of roles">
+              <input class="form-check-input"
+                     type="checkbox"
+                     [id]="'create-role-' + role._id"
+                     [checked]="isRoleSelectedForCreate(role._id)"
+                     (change)="onCreateRoleToggle(role._id, $event)">
+              <label class="form-check-label" [for]="'create-role-' + role._id">
+                {{ role.name }}
+                <small class="text-muted d-block">{{ role.description }}</small>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!selectedUserForCreate" class="text-muted">
+          Selecciona un usuario para ver los roles disponibles
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeCreateModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Overlay del modal -->
-<div *ngIf="showModal" class="modal-backdrop fade show"></div>
+<div *ngIf="showModal || showCreateModal" class="modal-backdrop fade show"></div>

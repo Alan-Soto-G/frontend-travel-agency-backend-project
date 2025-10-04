@@ -15,9 +15,11 @@ import { RoleService } from '../../services/role.service';
 })
 export class UserRolesComponent implements OnInit {
   users: User[] = [];
+  allUsers: User[] = []; // Todos los usuarios para búsquedas y crear
   roles: Role[] = [];
   userRoles: Record<string, Role[]> = {}; // userId -> array de roles
   usersWithRoles: User[] = []; // Solo usuarios que tienen roles asignados
+  isSearchMode: boolean = false; // Indica si estamos en modo búsqueda
 
   constructor(
     private userRoleService: UserRoleService,
@@ -40,6 +42,7 @@ export class UserRolesComponent implements OnInit {
     this.userService.getUsers().subscribe({
       next: (users) => {
         this.users = users;
+        this.allUsers = [...users]; // Copia para usar en búsquedas y crear
         this.loadUserRolesForAllUsers();
       },
       error: (err) => console.error('Error al cargar usuarios', err)
@@ -134,5 +137,103 @@ export class UserRolesComponent implements OnInit {
         error: (err) => console.error('Error al eliminar asignación de rol', err)
       });
     }
+  }
+
+  /**
+   * Maneja la creación de asignaciones desde el modal de crear
+   * @param event Evento con userId y roleId
+   */
+  onCreateAssignment(event: {userId: string, roleId: string}): void {
+    const user = this.allUsers.find(u => u._id === event.userId);
+    const role = this.roles.find(r => r._id === event.roleId);
+
+    if (user && role) {
+      // Verificar si ya existe la asignación
+      const hasRole = this.userRoles[event.userId]?.some(r => r._id === event.roleId);
+
+      if (hasRole) {
+        // Eliminar asignación
+        this.onRoleToggle({user, role, checked: false});
+      } else {
+        // Crear asignación
+        this.onRoleToggle({user, role, checked: true});
+      }
+    }
+  }
+
+  /**
+   * Busca asignaciones por usuario
+   * @param userId ID del usuario a buscar
+   */
+  onSearchByUser(userId: string): void {
+    this.userRoleService.getUserRolesByUserId(userId).subscribe({
+      next: (userRoles: UserRole[]) => {
+        this.isSearchMode = true;
+        this.usersWithRoles = [];
+        this.userRoles = {};
+
+        if (userRoles && userRoles.length > 0) {
+          // Encontrar el usuario
+          const user = this.allUsers.find(u => u._id === userId);
+          if (user) {
+            this.usersWithRoles = [user];
+            this.userRoles[userId] = userRoles.map(ur => ur.role);
+          }
+        }
+
+        console.log(`Búsqueda por usuario completada: ${userRoles.length} asignaciones encontradas`);
+      },
+      error: (err) => console.error('Error al buscar por usuario', err)
+    });
+  }
+
+  /**
+   * Busca asignaciones por rol
+   * @param roleId ID del rol a buscar
+   */
+  onSearchByRole(roleId: string): void {
+    this.userRoleService.getUserRolesByRoleId(roleId).subscribe({
+      next: (userRoles: UserRole[]) => {
+        this.isSearchMode = true;
+        this.usersWithRoles = [];
+        this.userRoles = {};
+
+        if (userRoles && userRoles.length > 0) {
+          // Agrupar por usuario
+          const userRoleMap: Record<string, Role[]> = {};
+          const userSet = new Set<string>();
+
+          userRoles.forEach(ur => {
+            if (!userRoleMap[ur.user._id]) {
+              userRoleMap[ur.user._id] = [];
+            }
+            userRoleMap[ur.user._id].push(ur.role);
+            userSet.add(ur.user._id);
+          });
+
+          // Crear lista de usuarios y asignaciones
+          userSet.forEach(userId => {
+            const user = this.allUsers.find(u => u._id === userId);
+            if (user) {
+              this.usersWithRoles.push(user);
+              this.userRoles[userId] = userRoleMap[userId];
+            }
+          });
+
+          this.sortUsersWithRoles();
+        }
+
+        console.log(`Búsqueda por rol completada: ${userRoles.length} asignaciones encontradas`);
+      },
+      error: (err) => console.error('Error al buscar por rol', err)
+    });
+  }
+
+  /**
+   * Resetea la vista a mostrar todos los usuarios con roles
+   */
+  resetToAllUsers(): void {
+    this.isSearchMode = false;
+    this.loadData();
   }
 }

@@ -1,6 +1,12 @@
 <app-asignacion-crud
   [users]="usersWithRoles"
+  [allUsers]="allUsers"
   [roles]="roles"
   [userRoles]="userRoles"
-  (onRoleToggle)="onRoleToggle($event)">
+  [typeOfCrud]="'UserRoles 📋'"
+  [lenSlice]="2"
+  (onRoleToggle)="onRoleToggle($event)"
+  (onCreateAssignment)="onCreateAssignment($event)"
+  (onSearchByUser)="onSearchByUser($event)"
+  (onSearchByRole)="onSearchByRole($event)">
 </app-asignacion-crud>
