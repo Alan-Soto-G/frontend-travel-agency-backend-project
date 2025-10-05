@@ -4,6 +4,7 @@ import { AdminComponent } from './components/layout/admin/admin.component';
 import { GuestComponent } from './components/layout/guest/guest.component';
 import { HttpClientModule } from '@angular/common/http';
 import { PermissionsComponent } from './pages/permissions/permissions.component'
+import { MainComponent } from './pages/main/main.component';
 
 const routes: Routes = [
   {
@@ -42,6 +43,10 @@ const routes: Routes = [
       {
         path: 'permissions',
         component: PermissionsComponent
+      },
+      {
+        path: 'main',
+        loadComponent: () => import('./pages/main/main.component').then((c) => c.MainComponent)
       }
     ]
   },

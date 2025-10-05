@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="AgentMigrationStateService">
-    <option name="migrationStatus" value="COMPLETED" />
+    <option name="pendingSessionIds">
+      <option value="06d7a6bd-6b54-4ba7-ba34-25d55f0f0672" />
+    </option>
+    <option name="pendingTurns">
+      <map>
+        <entry key="06d7a6bd-6b54-4ba7-ba34-25d55f0f0672">
+          <value>
+            <set>
+              <option value="0faccf67-0f15-4fe8-895d-8460a2202473" />
+              <option value="2f0dae07-b044-479d-bbee-52174c3979ca" />
+              <option value="f4e88edf-9557-43e2-9c80-8c44c101203f" />
+              <option value="b2ad38e9-d92d-480c-99bb-ac3d54f80a67" />
+              <option value="03e11269-dac7-41b4-babc-7cef85e979e5" />
+              <option value="45ef9aec-7a3f-49a4-9f8c-1c506850e676" />
+            </set>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <pendingWorkingSetItems>
+      <entry key="06d7a6bd-6b54-4ba7-ba34-25d55f0f0672">
+        <set>
+          <option value="file://$PROJECT_DIR$/src/app/app-routing.module.ts" />
+          <option value="file://$PROJECT_DIR$/src/main.ts" />
+        </set>
+      </entry>
+    </pendingWorkingSetItems>
   </component>
 </project>
