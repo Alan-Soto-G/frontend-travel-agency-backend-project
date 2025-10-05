@@ -296,11 +296,23 @@ export class UserRolesComponent implements OnInit {
       next: (userRoles: UserRole[]) => {
         if (userRoles && userRoles.length > 0) {
           // Obtener todos los usuarios que tienen el rol buscado
+          // Filtrar solo los que tienen user válido
           const usersWithSearchedRole = new Set<string>();
 
           userRoles.forEach(ur => {
-            usersWithSearchedRole.add(ur.user._id);
+            // Validar que ur.user existe y tiene _id
+            if (ur.user && ur.user._id) {
+              usersWithSearchedRole.add(ur.user._id);
+            }
           });
+
+          // Si no hay usuarios válidos, terminar aquí
+          if (usersWithSearchedRole.size === 0) {
+            this.updateGenericData();
+            this.isLoading = false;
+            console.log('No se encontraron usuarios válidos con este rol');
+            return;
+          }
 
           // Para cada usuario que tiene el rol buscado, cargar TODOS sus roles
           let processedUsers = 0;
@@ -313,7 +325,10 @@ export class UserRolesComponent implements OnInit {
                 if (user) {
                   this.usersWithRoles.push(user);
                   // Guardar TODOS los roles del usuario, no solo el buscado
-                  this.userRoles[userId] = allUserRoles.map(ur => ur.role);
+                  // Filtrar roles válidos
+                  this.userRoles[userId] = allUserRoles
+                    .filter(ur => ur.role && ur.role._id)
+                    .map(ur => ur.role);
                 }
 
                 processedUsers++;

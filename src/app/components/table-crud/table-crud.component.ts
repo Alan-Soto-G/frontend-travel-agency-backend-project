@@ -1,18 +1,21 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ModalCrudComponent } from '../modal-crud/modal-crud.component';
 import { FormField } from '../../models/form-field.component';
 
 /**
  * TableCrudComponent
  *
- * Componente genérico de tabla CRUD reutilizable.
- * Recibe datos, encabezados, campos y funciones por Input y maneja la interacción con el modal CRUD.
+ * Componente genérico de tabla CRUD reutilizable con:
+ * - Búsqueda en tiempo real
+ * - Paginación (10 registros por página)
+ * - Diseño completamente responsive
  */
 @Component({
   selector: 'app-table-crud',
   standalone: true,
-  imports: [CommonModule, ModalCrudComponent],
+  imports: [CommonModule, ModalCrudComponent, FormsModule],
   templateUrl: './table-crud.component.html',
   styleUrls: ['./table-crud.component.scss']
 })
@@ -75,6 +78,127 @@ export class TableCrudComponent {
    * Definición de los campos del formulario para el modal.
    */
   @Input() fields: FormField[] = [];
+
+  // Propiedades para búsqueda y paginación
+  searchText: string = '';
+  filteredData: Array<any> = [];
+  paginatedData: Array<any> = [];
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalPages: number = 1;
+
+  // Hacer Math disponible en el template
+  Math = Math;
+
+  /**
+   * Cuando cambia la data de entrada, actualizar filtros y paginación
+   */
+  ngOnChanges(): void {
+    this.applyFilters();
+  }
+
+  /**
+   * Aplica el filtro de búsqueda y actualiza la paginación
+   */
+  applyFilters(): void {
+    // Si no hay texto de búsqueda, mostrar todos los datos
+    if (!this.searchText || this.searchText.trim() === '') {
+      this.filteredData = [...this.data];
+    } else {
+      // Filtrar datos según el texto de búsqueda
+      const searchLower = this.searchText.toLowerCase();
+      this.filteredData = this.data.filter(item => {
+        // Buscar en todos los campos configurados
+        return this.itemsData.some(field => {
+          const value = this.getNestedValue(item, field);
+          return value && value.toString().toLowerCase().includes(searchLower);
+        });
+      });
+    }
+
+    // Reiniciar a la primera página cuando se filtra
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  /**
+   * Actualiza la paginación según los datos filtrados
+   */
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedData = this.filteredData.slice(startIndex, endIndex);
+  }
+
+  /**
+   * Cambia a la página anterior
+   */
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePagination();
+    }
+  }
+
+  /**
+   * Cambia a la página siguiente
+   */
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePagination();
+    }
+  }
+
+  /**
+   * Va a una página específica
+   */
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  /**
+   * Genera un array de números de página para mostrar
+   */
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+
+    if (this.totalPages <= maxPagesToShow) {
+      // Mostrar todas las páginas si son pocas
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar páginas alrededor de la actual
+      let startPage = Math.max(1, this.currentPage - 2);
+      let endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+      if (this.currentPage <= 3) {
+        endPage = maxPagesToShow;
+      }
+      if (this.currentPage >= this.totalPages - 2) {
+        startPage = this.totalPages - maxPagesToShow + 1;
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+
+    return pages;
+  }
+
+  /**
+   * Maneja el cambio en el input de búsqueda
+   */
+  onSearchChange(): void {
+    this.applyFilters();
+  }
 
   /**
    * Obtiene el valor de una propiedad anidada de un objeto

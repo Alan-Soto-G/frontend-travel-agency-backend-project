@@ -1,5 +1,6 @@
 <main>
   <div class="container mt-4">
+    <!-- Header con título y botón crear -->
     <div id="head">
       <h2 class="mb-4">{{typeOfCrud}}</h2>
       <button class="btn btn-primary mb-3" (click)="handleActionClick('create')">
@@ -7,27 +8,126 @@
       </button>
     </div>
 
-    @if (data.length > 0) {
-      <p>Total de {{ typeOfCrud.slice(0, -lenSlice+1) }}: {{ data.length }}</p>
-    } @else {
-      <p>No hay registros disponibles</p>
-    }
+    <!-- Barra de búsqueda -->
+    <div class="search-container mb-3">
+      <div class="search-wrapper">
+        <input
+          type="text"
+          class="form-control search-input"
+          placeholder="🔍 Buscar en la tabla..."
+          [(ngModel)]="searchText"
+          (input)="onSearchChange()"
+          autocomplete="off">
+        <button
+          *ngIf="searchText"
+          class="btn btn-sm btn-clear"
+          (click)="searchText = ''; onSearchChange()"
+          title="Limpiar búsqueda">
+          ×
+        </button>
+      </div>
+    </div>
 
-    <table class="table table-bordered">
-      <thead class="thead-light">
-        <tr id="headTable">
-          <th *ngFor="let col of headTable">{{ col | titlecase }}</th>
-        </tr>
-      </thead>
+    <!-- Información de resultados -->
+    <div class="info-bar mb-3">
+      @if (filteredData.length > 0) {
+        <p class="results-info">
+          Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} -
+          {{ Math.min(currentPage * itemsPerPage, filteredData.length) }}
+          de {{ filteredData.length }}
+          {{ typeOfCrud.slice(0, -lenSlice+1) }}
+          @if (searchText) {
+            <span class="search-badge">(Filtrados de {{ data.length }} totales)</span>
+          }
+        </p>
+      } @else if (searchText) {
+        <p class="no-results">No se encontraron resultados para "{{ searchText }}"</p>
+      } @else {
+        <p class="no-results">No hay registros disponibles</p>
+      }
+    </div>
 
-      <tbody>
-        <tr *ngFor="let row of data" id="bodyTable">
-          <td *ngFor="let col of itemsData">{{ getNestedValue(row, col) }}</td>
-          <td><button class="btn btn-sm btn-info mr-2" (click)="handleActionClick('edit', row._id)">Edit</button></td>
-          <td><button class="btn btn-sm btn-danger" (click)="handleActionClick('delete', row._id)">Delete</button></td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Tabla responsive -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover" *ngIf="paginatedData.length > 0">
+        <thead class="thead-light">
+          <tr id="headTable">
+            <th *ngFor="let col of headTable">{{ col | titlecase }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of paginatedData" id="bodyTable">
+            <td *ngFor="let col of itemsData" [attr.data-label]="headTable[itemsData.indexOf(col)]">
+              {{ getNestedValue(row, col) }}
+            </td>
+            <td data-label="Editar">
+              <button class="btn btn-sm btn-info" (click)="handleActionClick('edit', row._id)">
+                <span class="d-none d-md-inline">Edit</span>
+                <span class="d-md-none">✏️</span>
+              </button>
+            </td>
+            <td data-label="Eliminar">
+              <button class="btn btn-sm btn-danger" (click)="handleActionClick('delete', row._id)">
+                <span class="d-none d-md-inline">Delete</span>
+                <span class="d-md-none">🗑️</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <nav *ngIf="totalPages > 1" class="pagination-container" aria-label="Navegación de páginas">
+      <ul class="pagination justify-content-center">
+        <!-- Botón anterior -->
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+            <span class="d-none d-sm-inline">Anterior</span>
+            <span class="d-sm-none">‹</span>
+          </button>
+        </li>
+
+        <!-- Primera página -->
+        <li class="page-item" *ngIf="getPageNumbers()[0] > 1">
+          <button class="page-link" (click)="goToPage(1)">1</button>
+        </li>
+        <li class="page-item disabled" *ngIf="getPageNumbers()[0] > 2">
+          <span class="page-link">...</span>
+        </li>
+
+        <!-- Páginas numeradas -->
+        <li class="page-item"
+            *ngFor="let page of getPageNumbers()"
+            [class.active]="page === currentPage">
+          <button class="page-link" (click)="goToPage(page)">
+            {{ page }}
+          </button>
+        </li>
+
+        <!-- Última página -->
+        <li class="page-item disabled" *ngIf="getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1">
+          <span class="page-link">...</span>
+        </li>
+        <li class="page-item" *ngIf="getPageNumbers()[getPageNumbers().length - 1] < totalPages">
+          <button class="page-link" (click)="goToPage(totalPages)">{{ totalPages }}</button>
+        </li>
+
+        <!-- Botón siguiente -->
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+            <span class="d-none d-sm-inline">Siguiente</span>
+            <span class="d-sm-none">›</span>
+          </button>
+        </li>
+      </ul>
+
+      <!-- Info de página en móviles -->
+      <div class="page-info d-md-none text-center mt-2">
+        Página {{ currentPage }} de {{ totalPages }}
+      </div>
+    </nav>
   </div>
 </main>
 

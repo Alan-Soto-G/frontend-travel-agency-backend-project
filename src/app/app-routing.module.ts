@@ -79,6 +79,10 @@ const routes: Routes = [
         }
       },
       {
+        path: 'role-permissions',
+        loadComponent: () => import('./pages/role-permissions/role-permissions.component').then((m) => m.RolePermissionsComponent)
+      },
+      {
         path: 'main',
         loadComponent: () => import('./pages/main/main.component').then((c) => c.MainComponent)
         // Sin guard de permisos - acceso libre para usuarios autenticados
