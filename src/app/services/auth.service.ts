@@ -26,6 +26,18 @@ export class AuthService {
   // ✅ Login con Microsoft
   async loginWithMicrosoft() {
     const provider = new OAuthProvider('microsoft.com');
+
+    // Configurar scopes específicos para Microsoft
+    provider.addScope('email');
+    provider.addScope('profile');
+    provider.addScope('openid');
+
+    // Configurar parámetros adicionales si es necesario
+    provider.setCustomParameters({
+      'tenant': 'common', // Permite cuentas personales y de trabajo
+      'prompt': 'select_account'
+    });
+
     return this.loginAndSendToBackend(provider);
   }
 
