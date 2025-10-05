@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app/app-routing.module';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app/app.component';
 import { provideToastr } from 'ngx-toastr';
+import { CookieService } from 'ngx-cookie-service';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -25,6 +26,7 @@ bootstrapApplication(AppComponent, {
       timeOut: 3000,
       positionClass: 'toast-top-center',
       preventDuplicates: true,
-    })
+    }),
+    CookieService,
   ],
 }).catch((err) => console.error(err));
