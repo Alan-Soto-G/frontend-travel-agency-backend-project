@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild, NgZone } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { LoginRequest } from '../../../models/login-request.model';
@@ -429,17 +429,6 @@ export class LoginComponent {
     }
   }
 
-  async loginWithMicrosoft() {
-  const result = await this.authService.loginWithMicrosoft();
-
-  if (result) {
-    console.log('Usuario autenticado:', result);
-    this.toastr.success('¡Bienvenido con Microsoft!');
-    this.router.navigate(['/default']);
-  } else {
-    this.toastr.error('Error al iniciar con Microsoft');
-  }
-}
 
  async loginWithGithub() {
     const result = await this.authService.loginWithGithub();
