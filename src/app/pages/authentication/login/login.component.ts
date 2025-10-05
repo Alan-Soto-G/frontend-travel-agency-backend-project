@@ -152,4 +152,16 @@ async loginWithGoogle() {
   }
 }
 
+async loginWithGithub() {
+  const result = await this.authService.loginWithGithub();
+
+  if (result) {
+    console.log('Usuario autenticado:', result);
+    this.toastr.success('¡Bienvenido con GitHub!');
+    // Aquí luego podrás redirigir o guardar datos
+  } else {
+    this.toastr.error('Error al iniciar con Github');
+  }
+}
+
 }
