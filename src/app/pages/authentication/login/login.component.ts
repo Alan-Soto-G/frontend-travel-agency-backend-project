@@ -442,4 +442,36 @@ export class LoginComponent {
     }
   }
 
+  /**
+   * Inicia el flujo de autenticación con Microsoft OAuth
+   *
+   * Flujo:
+   * 1. Abre popup de Microsoft para autorización
+   * 2. Usuario selecciona cuenta de Microsoft
+   * 3. Microsoft devuelve token de autenticación
+   * 4. Se crea/actualiza usuario en el backend
+   * 5. Se guarda sesión y se redirige al dashboard
+   */
+  async loginWithMicrosoft(): Promise<void> {
+    try {
+      // Llamar al servicio de autenticación con Microsoft
+      const result = await this.authService.loginWithMicrosoft();
+
+      if (result) {
+        // ✅ Autenticación exitosa
+        console.log('✅ Usuario autenticado con Microsoft:', result);
+        this.toastr.success('¡Bienvenido con Microsoft!', 'Login exitoso');
+
+        // Redirigir al dashboard
+        this.router.navigate(['/main']);
+      } else {
+        // ❌ Error en autenticación
+        this.toastr.error('Error al iniciar sesión con Microsoft', 'Error');
+      }
+    } catch (error) {
+      console.error('❌ Error en login con Microsoft:', error);
+      this.toastr.error('No se pudo iniciar sesión con Microsoft. Intenta de nuevo.', 'Error');
+    }
+  }
+
 }

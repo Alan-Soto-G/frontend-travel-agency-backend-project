@@ -289,4 +289,31 @@ export class RegisterComponent {
       this.toastr.error('Error al registrarse con Google', 'Error');
     }
   }
+
+  /**
+   * Inicia el flujo de registro con Microsoft
+   */
+  async registerWithMicrosoft(): Promise<void> {
+    try {
+      // Llamar al servicio de autenticación con Microsoft
+      const result = await this.authService.loginWithMicrosoft();
+
+      if (result) {
+        // ✅ Autenticación exitosa
+        console.log('✅ Usuario autenticado con Microsoft:', result);
+        this.toastr.success('¡Bienvenido con Microsoft!', 'Registro exitoso');
+
+        // Redirigir al dashboard
+        setTimeout(() => {
+          this.router.navigate(['/main']);
+        }, 2000);
+      } else {
+        // ❌ Error en autenticación
+        this.toastr.error('Error al registrarse con Microsoft', 'Error');
+      }
+    } catch (error) {
+      console.error('❌ Error en registro con Microsoft:', error);
+      this.toastr.error('No se pudo registrar con Microsoft. Intenta de nuevo.', 'Error');
+    }
+  }
 }
