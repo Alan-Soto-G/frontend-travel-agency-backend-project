@@ -40,7 +40,11 @@ export class LoginComponent {
     private userService: UserService,
     private ngZone: NgZone,
     private authService: AuthService,
-    private router: Router
+    private otpService: OtpServiceService,
+    private cookieService: CookieService,
+    private sessionService: SessionService,
+    private router: Router,
+    private securityService: SecurityService
   ) {}
 
   get isNightTime(): boolean {
@@ -66,12 +70,6 @@ export class LoginComponent {
         this.toastr.error(`El correo ${this.loginData.email} no está asociado a ninguna cuenta.`, 'Error');
       }
     });
-  }
-
-  public onLogin(): void {
-    this.toastr.success('¡Operación realizada!', 'Éxito');
-    console.log('LoginData:', this.loginData);
-    this.router.navigate(['/landing-page']); // Redirige a la página de inicio después del login
   }
 
   // =================================================================
@@ -141,18 +139,6 @@ export class LoginComponent {
       this.captchaToken = token;
     });
   }
-
-async loginWithGoogle() {
-  const result = await this.authService.loginWithGoogle();
-
-  if (result) {
-    console.log('Usuario autenticado:', result);
-    this.toastr.success('¡Bienvenido con Google!');
-    this.router.navigate(['/default']);
-  } else {
-    this.toastr.error('Error al iniciar con Google');
-  }
-}
 
 async loginWithMicrosoft() {
   const result = await this.authService.loginWithMicrosoft();
