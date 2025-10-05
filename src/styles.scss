@@ -8,6 +8,10 @@ File: style.css
 =========================================================================
 =================================================================================== */
 
+// Global styles
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
 // main framework
 @import 'node_modules/bootstrap/scss/functions';
 @import 'node_modules/bootstrap/scss/variables';

@@ -16,11 +16,12 @@
     "prettier": "prettier --write ./src"
   },
   "dependencies": {
-    "@angular/animations": "20.3.1",
+    "@angular/animations": "^20.3.1",
     "@angular/cdk": "^20.0.4",
     "@angular/common": "20.3.1",
     "@angular/compiler": "20.3.1",
     "@angular/core": "20.3.1",
+    "@angular/fire": "^20.0.1",
     "@angular/forms": "20.3.1",
     "@angular/localize": "20.3.1",
     "@angular/platform-browser": "20.3.1",
@@ -30,6 +31,7 @@
     "@popperjs/core": "2.11.8",
     "apexcharts": "4.7.0",
     "bootstrap": "5.3.7",
+    "firebase": "^11.10.0",
     "ng-apexcharts": "1.16.0",
     "ngx-cookie-service": "^20.1.0",
     "ngx-scrollbar": "18.0.0",

@@ -106,3 +106,6 @@ dist
 #angular catch file
 .angular
 .vscode/
+
+.idea/
+.src/environments/environment.ts

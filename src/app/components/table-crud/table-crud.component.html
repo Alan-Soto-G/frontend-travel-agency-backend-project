@@ -1,6 +1,5 @@
 <main>
   <div class="container mt-4">
-
     <div id="head">
       <h2 class="mb-4">{{typeOfCrud}}</h2>
       <button class="btn btn-primary mb-3" (click)="handleActionClick('create')">
@@ -15,34 +14,29 @@
     }
 
     <table class="table table-bordered">
-
       <thead class="thead-light">
-      <tr id="headTable">
-        <!-- columnas dinámicas -->
-        <th *ngFor="let col of headTable">{{ col | titlecase }}</th>
-      </tr>
+        <tr id="headTable">
+          <th *ngFor="let col of headTable">{{ col | titlecase }}</th>
+        </tr>
       </thead>
 
       <tbody>
         <tr *ngFor="let row of data" id="bodyTable">
-          <!-- valores dinámicos -->
-          <td *ngFor="let col of itemsData">{{ row[col] }}</td>
-            <td><button class="btn btn-sm btn-info mr-2" (click)="handleActionClick('edit', row._id)">Edit</button></td>
-            <td><button class="btn btn-sm btn-danger" (click)="handleActionClick('delete', row._id)">Delete</button></td>
+          <td *ngFor="let col of itemsData">{{ getNestedValue(row, col) }}</td>
+          <td><button class="btn btn-sm btn-info mr-2" (click)="handleActionClick('edit', row._id)">Edit</button></td>
+          <td><button class="btn btn-sm btn-danger" (click)="handleActionClick('delete', row._id)">Delete</button></td>
         </tr>
       </tbody>
-
     </table>
   </div>
 </main>
 
 <app-modal-crud
-[title]="titleModal"
-[message]="messageModal"
-[typeService]="typeServiceModal"
-[textButton]="textButtonModal"
-[fields]="fields"
-[formData]="formDataModal"
-(formSubmitted)="onFormSubmitted($event)"
->
-</app-modal-crud>
+  [title]="titleModal"
+  [message]="messageModal"
+  [typeService]="typeServiceModal"
+  [textButton]="textButtonModal"
+  [fields]="fields"
+  [formData]="formDataModal"
+  (formSubmitted)="onFormSubmitted($event)"
+></app-modal-crud>

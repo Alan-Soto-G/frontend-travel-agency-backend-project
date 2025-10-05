@@ -6,6 +6,9 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app/app.component';
 import { provideToastr } from 'ngx-toastr';
 import { CookieService } from 'ngx-cookie-service';
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideAuth, getAuth } from '@angular/fire/auth';
+import { HttpClientModule } from '@angular/common/http';
 
 if (environment.production) {
   enableProdMode();
@@ -13,7 +16,9 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(BrowserModule, AppRoutingModule),
+    importProvidersFrom(BrowserModule, AppRoutingModule, HttpClientModule),
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideAuth(() => getAuth()),
     provideAnimations(),
     provideToastr({
       timeOut: 3000,
