@@ -26,12 +26,12 @@ export class PermissionsComponent implements OnInit {
   /**
    * Encabezados de la tabla.
    */
-  headTable: string[] = ['ID', 'URL', 'Método', 'Actualizar', 'Eliminar'];
+  headTable: string[] = ['ID', 'URL', 'Modelo', 'Actualizar', 'Eliminar'];
 
   /**
    * Campos de los datos a mostrar en la tabla.
    */
-  itemsData: string[] = ['_id', 'url', 'method'];
+  itemsData: string[] = ['_id', 'url', 'model'];
 
   /**
    * Diccionario de funciones CRUD para pasar al componente de tabla.
@@ -41,17 +41,26 @@ export class PermissionsComponent implements OnInit {
   /**
    * Definición de los campos del formulario para el modal CRUD.
    */
-fields: FormField[] = [
-  { name: 'url', label: 'URL', type: 'text', placeholder: 'Ej: /api/users', required: true },
-  {
-    name: 'method',
-    label: 'Método',
-    type: 'text',
-    placeholder: 'Ej: GET',
-    required: true,
-    pattern: '^(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)$'  // ✅ solo acepta estos métodos
-  }
-];
+  fields: FormField[] = [
+    {
+      name: 'url',
+      label: 'URL',
+      type: 'text',
+      placeholder: 'Ingrese la URL (Ej: /api/users)',
+      required: true,
+      min: 3,
+      max: 100
+    },
+    {
+      name: 'model',
+      label: 'Modelo',
+      type: 'text',
+      placeholder: 'Ingrese el modelo (Ej: User, Role, Permission)',
+      required: true,
+      min: 2,
+      max: 50
+    }
+  ];
 
 
   /**
