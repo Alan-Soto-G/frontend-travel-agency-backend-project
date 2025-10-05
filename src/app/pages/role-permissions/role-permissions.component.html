@@ -1,0 +1,27 @@
+<app-asignacion-crud
+  [entities]="genericEntities"
+  [allEntities]="genericAllEntities"
+  [assignments]="genericAssignments"
+  [entityAssignments]="genericEntityAssignments"
+  [config]="{
+    entityName: 'Rol',
+    assignmentName: 'Permiso',
+    tableTitle: 'RolePermissions 🔐',
+    entitySearchPlaceholder: 'Escribir nombre de rol...',
+    assignmentSelectPlaceholder: 'Seleccionar permiso...',
+    listAllButtonText: 'Listar Todo',
+    manageButtonText: 'Administrar',
+    noAssignmentsMessage: 'Sin permisos asignados',
+    noEntityFoundMessage: 'Ningún rol posee este permiso',
+    modalTitle: 'Administrar permisos para {entityName}',
+    lenSlice: 2
+  }"
+  [isSearchMode]="isSearchMode"
+  [searchType]="searchType"
+  [isLoading]="isLoading"
+  (onAssignmentToggle)="onAssignmentToggle($event)"
+  (onListAll)="onListAll()"
+  (onSearchByEntity)="onSearchByEntity($event)"
+  (onSearchByAssignment)="onSearchByAssignment($event)">
+</app-asignacion-crud>
+

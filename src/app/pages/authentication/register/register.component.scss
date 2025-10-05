@@ -1,1 +1,343 @@
-// This file is intentionally left empty to allow customers to add custom CSS if needed.
+.auth-form {
+  background-image: url('/assets/Login/background-login-2.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+}
+
+/* Cambio automático de fondo según la hora */
+.auth-form.night-mode {
+  background-image: url('/assets/Login/background-login.webp');
+}
+
+.auth-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.35);
+  z-index: 1;
+}
+
+.auth-form > * {
+  position: relative;
+  z-index: 2;
+}
+
+.card {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.card-body {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+#logo {
+  width: clamp(100px, 30vw, 150px);
+  height: auto;
+}
+
+.auth-header h2 {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.icon {
+  width: clamp(28px, 7vw, 37px);
+  height: auto;
+  margin-right: 0.5rem;
+}
+
+.btn {
+  padding: clamp(0.5rem, 2vw, 0.75rem);
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.bg-purple {
+  background-color: #6f42c1 !important;
+  color: #fff !important;
+}
+
+.bg-blue {
+  background-color: #5da7f6 !important;
+  color: #fff !important;
+}
+
+/* Centrar el captcha */
+app-recapcha {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+app-recapcha > div {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Hacer que el captcha tenga el mismo ancho que los inputs */
+app-recapcha > div > div {
+  width: 100% !important;
+}
+
+app-recapcha iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Estilos del modal de verificación OTP */
+.verifModal {
+  border: none;
+  border-radius: 16px;
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 550px;
+  min-width: 280px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: white;
+}
+
+.verifModal::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.verifModal h2 {
+  color: #6f42c1;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+}
+
+.verifModal p {
+  color: #495057;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.email-highlight {
+  font-weight: 600;
+  color: #6f42c1;
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  margin-bottom: 2rem;
+  word-break: break-all;
+}
+
+.code-inputs {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.3rem, 1.5vw, 0.75rem);
+  margin: 2rem 0;
+  flex-wrap: nowrap;
+}
+
+.code-input {
+  width: clamp(35px, 9vw, 50px);
+  height: clamp(45px, 11vw, 60px);
+  text-align: center;
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  font-weight: 700;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  color: #212529;
+  flex-shrink: 0;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: #6f42c1;
+  box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.1);
+  transform: scale(1.05);
+}
+
+.code-input:not(:placeholder-shown) {
+  border-color: #6f42c1;
+  background-color: #f3e5f5;
+}
+
+.verifModal .btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.verifModal .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+}
+
+/* Responsive Design */
+
+/* Tablets (768px y abajo) */
+@media (max-width: 768px) {
+  .auth-form {
+    padding: 0.5rem;
+  }
+
+  .card {
+    max-width: 100%;
+  }
+
+  .verifModal {
+    padding: 2rem 1.5rem;
+  }
+
+  .code-inputs {
+    gap: 0.4rem;
+    margin: 1.5rem 0;
+  }
+
+  .btn span {
+    font-size: clamp(0.75rem, 2vw, 0.875rem);
+  }
+}
+
+/* Móviles grandes (576px y abajo) */
+@media (max-width: 576px) {
+  .auth-form {
+    padding: 0.25rem;
+  }
+
+  .card-body {
+    padding: 1.25rem;
+  }
+
+  .auth-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .auth-header p {
+    font-size: 0.875rem;
+  }
+
+  .btn {
+    padding: 0.6rem;
+  }
+
+  .btn > div {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .icon {
+    width: 24px;
+    margin-right: 0.5rem;
+  }
+
+  .form-floating > label {
+    font-size: 0.875rem;
+  }
+
+  .form-floating > input {
+    font-size: 0.875rem;
+    padding: 0.75rem;
+  }
+
+  .verifModal {
+    padding: 1.5rem 1rem;
+  }
+
+  .code-inputs {
+    gap: 0.25rem;
+  }
+
+  h5 {
+    font-size: 0.875rem;
+  }
+}
+
+/* Móviles pequeños (400px y abajo) */
+@media (max-width: 400px) {
+  .card-body {
+    padding: 1rem;
+  }
+
+  #logo {
+    width: 80px;
+  }
+
+  .auth-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .auth-header p {
+    font-size: 0.8rem;
+  }
+
+  .btn span {
+    font-size: 0.75rem;
+  }
+
+  .code-input {
+    width: 32px;
+    height: 42px;
+    font-size: 1rem;
+  }
+
+  .verifModal {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .form-check-label,
+  .text-muted,
+  h5 a {
+    font-size: 0.75rem;
+  }
+}
+
+/* Modo landscape en móviles */
+@media (max-height: 600px) and (orientation: landscape) {
+  .auth-form {
+    min-height: auto;
+    padding: 0.5rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  #logo {
+    width: 80px;
+  }
+
+  .auth-header {
+    margin-top: 0.5rem !important;
+  }
+
+  .btn {
+    padding: 0.5rem;
+    margin-top: 0.5rem !important;
+  }
+
+  .form-floating {
+    margin-bottom: 0.75rem !important;
+  }
+
+  h5 {
+    font-size: 0.8rem;
+    margin: 0.5rem 0 !important;
+  }
+}
