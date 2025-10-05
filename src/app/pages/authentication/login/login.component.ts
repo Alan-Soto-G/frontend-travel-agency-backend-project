@@ -428,4 +428,18 @@ export class LoginComponent {
       this.toastr.error('No se pudo iniciar sesión con Google. Intenta de nuevo.', 'Error');
     }
   }
+
+
+ async loginWithGithub() {
+    const result = await this.authService.loginWithGithub();
+
+    if (result) {
+      console.log('Usuario autenticado:', result);
+      this.toastr.success('¡Bienvenido con GitHub!');
+      // Aquí luego podrás redirigir o guardar datos
+    } else {
+      this.toastr.error('Error al iniciar con Github');
+    }
+  }
+
 }
