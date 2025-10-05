@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild, NgZone } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { LoginModel } from '../../../models/login.model';
@@ -39,7 +39,8 @@ export class LoginComponent {
     private toastr: ToastrService,
     private userService: UserService,
     private ngZone: NgZone,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   get isNightTime(): boolean {
@@ -70,6 +71,7 @@ export class LoginComponent {
   public onLogin(): void {
     this.toastr.success('¡Operación realizada!', 'Éxito');
     console.log('LoginData:', this.loginData);
+    this.router.navigate(['/landing-page']); // Redirige a la página de inicio después del login
   }
 
   // =================================================================
@@ -146,9 +148,21 @@ async loginWithGoogle() {
   if (result) {
     console.log('Usuario autenticado:', result);
     this.toastr.success('¡Bienvenido con Google!');
-    // Aquí luego podrás redirigir o guardar datos
+    this.router.navigate(['/default']);
   } else {
     this.toastr.error('Error al iniciar con Google');
+  }
+}
+
+async loginWithMicrosoft() {
+  const result = await this.authService.loginWithMicrosoft();
+
+  if (result) {
+    console.log('Usuario autenticado:', result);
+    this.toastr.success('¡Bienvenido con Microsoft!');
+    this.router.navigate(['/default']);
+  } else {
+    this.toastr.error('Error al iniciar con Microsoft');
   }
 }
 
