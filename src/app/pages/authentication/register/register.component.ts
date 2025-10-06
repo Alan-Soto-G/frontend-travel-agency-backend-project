@@ -1,17 +1,19 @@
 // angular import
-import { Component, ElementRef, ViewChild, NgZone } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { UserService } from '../../../services/user.service';
-import { AuthService } from 'src/app/services/auth.service';
-import { OtpServiceService } from '../../../services/otpService.service';
-import { User } from '../../../models/user.model';
+import { TraditionalRegisterService } from '../../../services/authentication/register/traditional-register.service';
+import { GoogleRegisterService } from '../../../services/authentication/register/google-register.service';
+import { MicrosoftRegisterService } from '../../../services/authentication/register/microsoft-register.service';
+import { GithubRegisterService } from '../../../services/authentication/register/github-register.service';
 
 /**
  * Componente de Registro con múltiples opciones:
  * - Registro tradicional con nombre, email y contraseña + verificación OTP
  * - Registro con Google (OAuth)
+ * - Registro con Microsoft (OAuth)
+ * - Registro con GitHub (OAuth)
  *
  * Flujo de registro tradicional:
  * 1. Usuario ingresa nombre, email y contraseña
@@ -73,11 +75,10 @@ export class RegisterComponent {
 
   constructor(
     private toastr: ToastrService,
-    private userService: UserService,
-    private ngZone: NgZone,
-    private authService: AuthService,
-    private otpService: OtpServiceService,
-    private router: Router
+    private traditionalRegisterService: TraditionalRegisterService,
+    private googleRegisterService: GoogleRegisterService,
+    private microsoftRegisterService: MicrosoftRegisterService,
+    private githubRegisterService: GithubRegisterService
   ) {}
 
   /**
@@ -93,7 +94,7 @@ export class RegisterComponent {
   // =================================================================
 
   /**
-   * Inicia el proceso de registro
+   * Inicia el proceso de registro tradicional
    */
   public startRegistration(registerForm: NgForm): void {
     // Validar formulario
@@ -108,37 +109,15 @@ export class RegisterComponent {
       return;
     }
 
-    // Verificar que el email no exista en el sistema
-    this.userService.getUserByEmail(this.registerData.email).subscribe({
-      next: (user) => {
-        // Si encuentra un usuario, significa que el email ya existe
-        if (user) {
-          this.toastr.error('Este correo electrónico ya está registrado.', 'Error');
-        }
-      },
-      error: (err) => {
-        // Si es error 404, el email no existe y podemos continuar
-        if (err.status === 404) {
-          // Generar y enviar código OTP
-          this.otpService.generateOtp(this.registerData.email).subscribe({
-            next: (_code) => {
-              console.log('✅ OTP generado y enviado al correo:', this.registerData.email);
-              this.toastr.success('Código de verificación enviado a tu correo.', 'Éxito');
+    // Verificar email y enviar OTP
+    this.traditionalRegisterService.verifyEmailAndSendOtp(this.registerData.email).subscribe({
+      next: (success) => {
+        if (success) {
+          // Abrir el modal de verificación
+          this.verifModal.nativeElement.showModal();
 
-              // Abrir el modal de verificación
-              this.verifModal.nativeElement.showModal();
-
-              // Hacer foco en el primer input
-              setTimeout(() => this.input1.nativeElement.focus(), 100);
-            },
-            error: (err) => {
-              console.error('❌ Error al generar OTP:', err);
-              this.toastr.error('Error al enviar el código de verificación.', 'Error');
-            }
-          });
-        } else {
-          // Otro tipo de error
-          this.toastr.error('Error al verificar el correo electrónico.', 'Error');
+          // Hacer foco en el primer input
+          setTimeout(() => this.input1.nativeElement.focus(), 100);
         }
       }
     });
@@ -148,29 +127,11 @@ export class RegisterComponent {
    * Completa el registro después de validar el código OTP
    */
   public completeRegistration(): void {
-    // Crear el objeto usuario
-    const newUser: User = {
+    this.traditionalRegisterService.createUser({
       name: this.registerData.name,
       email: this.registerData.email,
       password: this.registerData.password
-    };
-
-    // Crear el usuario en el backend
-    this.userService.createUser(newUser).subscribe({
-      next: (createdUser) => {
-        console.log('✅ Usuario creado:', createdUser);
-        this.toastr.success('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'Éxito');
-
-        // Redirigir al login después de 2 segundos
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
-      },
-      error: (err) => {
-        console.error('❌ Error al crear usuario:', err);
-        this.toastr.error('Error al crear la cuenta. Intenta de nuevo.', 'Error');
-      }
-    });
+    }).subscribe();
   }
 
   // =================================================================
@@ -225,30 +186,19 @@ export class RegisterComponent {
     const code = this.verificationCode.join('');
     console.log('🔍 Validando código:', code);
 
-    this.otpService.validateOtp(this.registerData.email, code).subscribe({
+    this.traditionalRegisterService.validateOtpCode(this.registerData.email, code).subscribe({
       next: (isValid) => {
         if (isValid) {
-          console.log('✅ OTP válido - Creando usuario');
-          this.toastr.success('Código verificado correctamente.', 'Éxito');
-
           // Cerrar el modal
           this.closeModal();
 
           // Completar el registro
           this.completeRegistration();
-
         } else {
-          console.log('❌ OTP inválido');
-          this.toastr.error('El código ingresado es incorrecto.', 'Error');
-
           // Limpiar inputs
           this.verificationCode = ['', '', '', '', '', ''];
           this.input1.nativeElement.focus();
         }
-      },
-      error: (err) => {
-        console.error('❌ Error al validar OTP:', err);
-        this.toastr.error('Error al validar el código. Intenta de nuevo.', 'Error');
       }
     });
   }
@@ -268,52 +218,27 @@ export class RegisterComponent {
   }
 
   // =================================================================
-  // Google OAuth Register
+  // OAuth Register Methods
   // =================================================================
 
   /**
    * Inicia el flujo de registro con Google
    */
   async registerWithGoogle(): Promise<void> {
-    const result = await this.authService.loginWithGoogle();
+    await this.googleRegisterService.register();
+  }
 
-    if (result) {
-      console.log('Usuario autenticado con Google:', result);
-      this.toastr.success('¡Bienvenido con Google!', 'Éxito');
-
-      // Redirigir al dashboard
-      setTimeout(() => {
-        this.router.navigate(['/main']);
-      }, 2000);
-    } else {
-      this.toastr.error('Error al registrarse con Google', 'Error');
-    }
+  /**
+   * Inicia el flujo de registro con GitHub
+   */
+  async registerWithGithub(): Promise<void> {
+    await this.githubRegisterService.register();
   }
 
   /**
    * Inicia el flujo de registro con Microsoft
    */
   async registerWithMicrosoft(): Promise<void> {
-    try {
-      // Llamar al servicio de autenticación con Microsoft
-      const result = await this.authService.loginWithMicrosoft();
-
-      if (result) {
-        // ✅ Autenticación exitosa
-        console.log('✅ Usuario autenticado con Microsoft:', result);
-        this.toastr.success('¡Bienvenido con Microsoft!', 'Registro exitoso');
-
-        // Redirigir al dashboard
-        setTimeout(() => {
-          this.router.navigate(['/main']);
-        }, 2000);
-      } else {
-        // ❌ Error en autenticación
-        this.toastr.error('Error al registrarse con Microsoft', 'Error');
-      }
-    } catch (error) {
-      console.error('❌ Error en registro con Microsoft:', error);
-      this.toastr.error('No se pudo registrar con Microsoft. Intenta de nuevo.', 'Error');
-    }
+    await this.microsoftRegisterService.register();
   }
 }
