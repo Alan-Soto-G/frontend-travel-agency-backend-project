@@ -21,7 +21,7 @@ import { NotificationService } from '../../notifications/notification.service';
  * 2. Genera y envía código OTP de 6 dígitos por correo
  * 3. Valida el código OTP ingresado por el usuario
  * 4. Genera token JWT y crea sesión
- * 5. Guarda token en cookie segura
+ * 5. Guarda token en cookie segura con duración de 1 semana
  * 6. Redirige al dashboard
  *
  * @author Alan Soto
@@ -31,6 +31,8 @@ import { NotificationService } from '../../notifications/notification.service';
   providedIn: 'root'
 })
 export class TraditionalLoginService {
+  private readonly TOKEN_EXPIRATION_DAYS = 7; // Duración de la cookie: 1 semana
+
   constructor(
     private toastr: ToastrService,
     private router: Router,
@@ -150,7 +152,7 @@ export class TraditionalLoginService {
    * 1. Obtiene el usuario por email
    * 2. Genera el token JWT con el ID del usuario
    * 3. Crea la sesión en el backend
-   * 4. Guarda el token en una cookie segura con expiración de 5 minutos
+   * 4. Guarda el token en una cookie segura con expiración de 1 semana
    * 5. Muestra mensaje de éxito
    * 6. Redirige al dashboard después de 3 segundos
    *
@@ -173,16 +175,16 @@ export class TraditionalLoginService {
             // Persistir la sesión en el backend (MongoDB)
             this.sessionService.createSession(session).subscribe({
               next: (createdSession) => {
-                // Guardar el token JWT en una cookie segura del navegador
+                // Guardar el token JWT en una cookie segura del navegador (1 semana)
                 this.cookieService.set('token', createdSession.token!, {
                   path: '/',
-                  maxAge: 300,
-                  sameSite: 'Strict'
+                  expires: this.TOKEN_EXPIRATION_DAYS,
+                  sameSite: 'Strict',
+                  secure: true // Usar solo en HTTPS en producción
                 } as any);
 
                 // Guardar datos del usuario en sessionStorage
                 sessionStorage.setItem('user', JSON.stringify(user));
-                sessionStorage.setItem('token', createdSession.token!);
 
                 // Mostrar notificación de éxito al usuario
                 this.toastr.success('Sesión iniciada correctamente', 'Login Exitoso');

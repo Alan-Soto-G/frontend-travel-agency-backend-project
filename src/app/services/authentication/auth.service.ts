@@ -1,4 +1,3 @@
-
 import { Injectable } from '@angular/core';
 import { Auth, GoogleAuthProvider, GithubAuthProvider, OAuthProvider, signInWithPopup } from '@angular/fire/auth';
 import { ToastrService } from 'ngx-toastr';
@@ -7,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { firstValueFrom, Observable, of } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { CookieService } from 'ngx-cookie-service';
 
 export interface Permission {
   url: string;
@@ -18,12 +18,14 @@ export interface Permission {
 })
 export class AuthService {
   private securityUrl = `${environment.apiUrl}public/security/`;
+  private readonly TOKEN_EXPIRATION_DAYS = 7; // Duración de la cookie: 1 semana
 
   constructor(
     private auth: Auth,
     private toastr: ToastrService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private cookieService: CookieService
   ) {}
 
   // ========================================
@@ -74,10 +76,15 @@ export class AuthService {
       const backendResponse = await firstValueFrom(
         this.http.post<any>(backendUrl, { idToken }).pipe(
           tap((response) => {
-            // 4. Guardar el JWT del backend
+            // 4. Guardar el JWT del backend en cookie segura (duración: 1 semana)
             if (response.jwt) {
-              sessionStorage.setItem('token', response.jwt);
-              console.log('✅ JWT guardado correctamente');
+              this.cookieService.set('token', response.jwt, {
+                path: '/',
+                expires: this.TOKEN_EXPIRATION_DAYS,
+                sameSite: 'Strict',
+                secure: false // Usar solo en HTTP, no en producción
+              } as any);
+              console.log('✅ JWT guardado en cookie correctamente');
             } else {
               console.error('❌ No se encontró el JWT en la respuesta');
             }
@@ -148,14 +155,14 @@ export class AuthService {
    * Verifica si hay sesión activa
    */
   isAuthenticated(): boolean {
-    return !!sessionStorage.getItem('token');
+    return !!this.cookieService.get('token');
   }
 
   /**
-   * Obtiene el token actual
+   * Obtiene el token actual desde la cookie
    */
   getToken(): string | null {
-    return sessionStorage.getItem('token');
+    return this.cookieService.get('token') || null;
   }
 
   /**
@@ -172,7 +179,7 @@ export class AuthService {
   async logout() {
     try {
       await this.auth.signOut();
-      sessionStorage.removeItem('token');
+      this.cookieService.delete('token', '/');
       sessionStorage.removeItem('user');
       this.toastr.success('Sesión cerrada correctamente', 'Hasta pronto');
       this.router.navigate(['/login']);
