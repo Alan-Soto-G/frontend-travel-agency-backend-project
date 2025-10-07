@@ -2,6 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { map } from 'rxjs/operators';
+
+/**
+ * Interfaz para la respuesta de validación de OTP
+ */
+export interface OtpValidationResponse {
+  isValid: boolean;
+  userId: string;
+}
 
 /**
  * Servicio para gestionar operaciones de OTP (One-Time Password) contra la API REST.
@@ -29,6 +38,7 @@ export class OtpServiceService {
    * @returns Observable con el código OTP generado (solo para pruebas)
    */
   generateOtp(email: string, userName: string): Observable<string> {
+    console.log(email, userName);
     return this.http.post(`${this.apiUrl}/generate`,
       {
         email: email,
@@ -78,12 +88,14 @@ export class OtpServiceService {
    * Valida un código OTP proporcionado contra el código almacenado.
    * @param emailOrPhone Email o número de teléfono del destinatario
    * @param code Código OTP a validar
-   * @returns Observable con true si el código es válido, false en caso contrario
+   * @returns Observable con boolean indicando si el OTP es válido
    */
   validateOtp(emailOrPhone: string, code: string): Observable<boolean> {
-    const params = new HttpParams()
-      .set('emailOrPhone', emailOrPhone)
-      .set('code', code);
-    return this.http.post<boolean>(`${this.apiUrl}/validate`, null, { params });
+    return this.http.post<OtpValidationResponse>(`${this.apiUrl}/validate`, {
+      email: emailOrPhone,
+      code: code
+    }).pipe(
+      map(response => response.isValid)
+    );
   }
 }

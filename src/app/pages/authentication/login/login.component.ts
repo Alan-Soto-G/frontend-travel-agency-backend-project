@@ -8,6 +8,7 @@ import { TraditionalLoginService } from '../../../services/authentication/login/
 import { GoogleLoginService } from '../../../services/authentication/login/google-login.service';
 import { GithubLoginService } from '../../../services/authentication/login/github-login.service';
 import { MicrosoftLoginService } from '../../../services/authentication/login/microsoft-login.service';
+import { SecurityService } from '../../../services/authentication/security.service';
 
 /**
  * Componente de Login con múltiples opciones de autenticación:
@@ -72,7 +73,8 @@ export class LoginComponent {
     private traditionalLoginService: TraditionalLoginService,
     private googleLoginService: GoogleLoginService,
     private githubLoginService: GithubLoginService,
-    private microsoftLoginService: MicrosoftLoginService
+    private microsoftLoginService: MicrosoftLoginService,
+    private securityService: SecurityService
   ) {}
 
   /**
@@ -122,15 +124,32 @@ export class LoginComponent {
     console.log('🔍 Validando código:', code);
 
     this.traditionalLoginService.validateOtpCode(this.loginData.email, code).subscribe({
-      next: (isValid) => {
+      next: (isValid: boolean) => {
         if (isValid) {
           this.closeModal();
-          this.traditionalLoginService.completeLogin(this.loginData.email);
+          // Get user by email to obtain userId for completeLogin
+          this.securityService.getUserByEmail(this.loginData.email).subscribe({
+            next: (user) => {
+              if (user && user._id) {
+                this.traditionalLoginService.completeLogin(user._id, this.loginData.email);
+              } else {
+                this.toastr.error('Usuario no encontrado', 'Error');
+              }
+            },
+            error: (err) => {
+              console.error('❌ Error al obtener usuario:', err);
+              this.toastr.error('Error al completar el login', 'Error');
+            }
+          });
         } else {
-          // Limpiar todos los inputs para permitir reintentar
+          this.toastr.error('Código OTP inválido. Por favor, inténtalo de nuevo.', 'Error de validación');
           this.verificationCode = ['', '', '', '', '', ''];
           this.input1.nativeElement.focus();
         }
+      },
+      error: () => {
+        this.verificationCode = ['', '', '', '', '', ''];
+        this.input1.nativeElement.focus();
       }
     });
   }

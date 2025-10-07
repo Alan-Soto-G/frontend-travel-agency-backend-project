@@ -3,7 +3,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { OtpServiceService } from '../../notifications/otpService.service';
-import { UserService } from '../../models/user.service';
+import { SecurityService } from '../security.service';
 import { User } from '../../../models/user.model';
 import { NotificationService } from '../../notifications/notification.service';
 
@@ -27,7 +27,7 @@ export class TraditionalRegisterService {
     private toastr: ToastrService,
     private router: Router,
     private otpService: OtpServiceService,
-    private userService: UserService,
+    private securityService: SecurityService,
     private notificationService: NotificationService
   ) {}
 
@@ -41,10 +41,11 @@ export class TraditionalRegisterService {
   verifyEmailAndSendOtp(email: string, userName?: string): Observable<boolean> {
     return new Observable(observer => {
       // Verificar que el email no exista en el sistema
-      this.userService.getUserByEmail(email).subscribe({
+      this.securityService.getUserByEmail(email).subscribe({
         next: (user) => {
           // Si encuentra un usuario, significa que el email ya existe
           if (user) {
+            console.log(user)
             this.toastr.error('Este correo electrónico ya está registrado.', 'Error');
             observer.next(false);
             observer.complete();
@@ -129,21 +130,21 @@ export class TraditionalRegisterService {
         password: userData.password
       };
 
-      this.userService.createUser(newUser).subscribe({
-        next: (createdUser) => {
-          console.log('✅ Usuario creado:', createdUser);
+      this.securityService.register(newUser).subscribe({
+        next: (response) => {
+          console.log('✅ Usuario creado:', response.user);
           this.toastr.success('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'Éxito');
 
           // Enviar email de bienvenida
-          const userName = createdUser.name || createdUser.email.split('@')[0];
-          this.notificationService.sendWelcomeEmail(createdUser.email, userName).subscribe();
+          const userName = response.user.name || response.user.email.split('@')[0];
+          this.notificationService.sendWelcomeEmail(response.user.email, userName).subscribe();
 
           // Redirigir al login después de 2 segundos
           setTimeout(() => {
             this.router.navigate(['/login']);
           }, 2000);
 
-          observer.next(createdUser);
+          observer.next(response.user);
           observer.complete();
         },
         error: (err) => {

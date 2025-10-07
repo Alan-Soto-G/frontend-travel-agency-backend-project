@@ -232,6 +232,10 @@ export class TableCrudComponent {
         this.textButtonModal = 'Guardar 💾';
         // @ts-ignore
         this.formDataModal = {...this.data.find(item => item._id === id)} || {};
+        // Eliminar el campo password para que se muestre vacío en modo edición
+        if (this.formDataModal.password !== undefined) {
+          delete this.formDataModal.password;
+        }
         break;
       case 'delete':
         this.titleModal = 'Eliminar ' + this.typeOfCrud.slice(0, -this.lenSlice);

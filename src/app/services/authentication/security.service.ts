@@ -36,6 +36,26 @@ export class SecurityService {
   constructor(private http: HttpClient) {}
 
   /**
+   * Obtiene un usuario por su email.
+   * Devuelve los datos del usuario sin la contraseña.
+   * @param email Email del usuario a buscar
+   * @returns Observable con el usuario (sin password) si existe
+   */
+  getUserByEmail(email: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/user/${email}`);
+  }
+
+  /**
+   * Registra un nuevo usuario en el sistema.
+   * Endpoint público para crear nuevos usuarios con validaciones y encriptación.
+   * @param newUser Usuario con name, email y password
+   * @returns Observable con el usuario creado (sin password)
+   */
+  register(newUser: User): Observable<{ message: string; user: User }> {
+    return this.http.post<{ message: string; user: User }>(`${this.apiUrl}/register`, newUser);
+  }
+
+  /**
    * Autentica un usuario en el sistema mediante email y contraseña.
    * Endpoint completo que verifica credenciales y genera token en un solo paso.
    * Retorna el token JWT, datos del usuario y fecha de expiración del token.
@@ -53,6 +73,7 @@ export class SecurityService {
    * @returns Observable con la validación y datos del usuario (sin password)
    */
   verifyCredentials(credentials: { email: string; password: string }): Observable<VerifyCredentialsResponse> {
+    console.log(credentials);
     return this.http.post<VerifyCredentialsResponse>(`${this.apiUrl}/verify-credentials`, credentials);
   }
 

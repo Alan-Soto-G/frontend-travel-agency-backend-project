@@ -15,7 +15,7 @@ export class SessionService {
    * URL base de la API para sesiones.
    * Se obtiene desde las variables de entorno.
    */
-  private apiUrl = `${environment.apiUrl}sessions`;
+  private apiUrl = `${environment.apiUrl}public/sessions`;
 
   /**
    * Inyecta el cliente HTTP para realizar peticiones al backend.

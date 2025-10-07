@@ -110,7 +110,7 @@ export class RegisterComponent {
     }
 
     // Verificar email y enviar OTP
-    this.traditionalRegisterService.verifyEmailAndSendOtp(this.registerData.email).subscribe({
+    this.traditionalRegisterService.verifyEmailAndSendOtp(this.registerData.email, this.registerData.name).subscribe({
       next: (success) => {
         if (success) {
           // Abrir el modal de verificación

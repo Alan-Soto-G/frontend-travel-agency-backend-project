@@ -55,44 +55,24 @@ export class TraditionalLoginService {
       // Verificar las credenciales (email y password) en el backend
       this.securityService.verifyCredentials(credentials).subscribe({
         next: (response) => {
+
           if (response.valid) {
+            const user: User = response.user!;
+            const userName: string = user.name || credentials.email.split('@')[0];
+            console.log(userName);
             // Generar y enviar código OTP de 6 dígitos al correo del usuario
-            this.userService.getUserByEmail(credentials.email).subscribe({
-              next: (user) => {
-                const userName: string = user.name || credentials.email.split('@')[0];
-                this.otpService.generateOtp(credentials.email, userName).subscribe({
-                  next: () => {
-                    console.log('✅ OTP generado y enviado al correo:', credentials.email);
-                    this.toastr.success('Código de verificación enviado a tu correo', 'Verificación');
-                    observer.next(true);
-                    observer.complete();
-                  },
-                  error: (err) => {
-                    console.error('❌ Error al generar OTP:', err);
-                    this.toastr.error('Error al enviar el código de verificación. Intenta de nuevo.', 'Error');
-                    observer.next(false);
-                    observer.complete();
-                  }
-                });
-              },
+            this.otpService.generateOtp(credentials.email, userName).subscribe({
+              next: () => {
+                console.log('✅ OTP generado y enviado al correo:', credentials.email);
+                this.toastr.success('Código de verificación enviado a tu correo', 'Verificación');
+                observer.next(true);
+                observer.complete();
+                },
               error: (err) => {
-                console.error('❌ Error al obtener usuario:', err);
-                // Fallback: usar la parte antes del @ del email
-                const userName: string = credentials.email.split('@')[0];
-                this.otpService.generateOtp(credentials.email, userName).subscribe({
-                  next: () => {
-                    console.log('✅ OTP generado y enviado al correo:', credentials.email);
-                    this.toastr.success('Código de verificación enviado a tu correo', 'Verificación');
-                    observer.next(true);
-                    observer.complete();
-                  },
-                  error: (err) => {
-                    console.error('❌ Error al generar OTP:', err);
-                    this.toastr.error('Error al enviar el código de verificación. Intenta de nuevo.', 'Error');
-                    observer.next(false);
-                    observer.complete();
-                  }
-                });
+                console.error('❌ Error al generar OTP:', err);
+                this.toastr.error('Error al enviar el código de verificación. Intenta de nuevo.', 'Error');
+                observer.next(false);
+                observer.complete();
               }
             });
           } else {
@@ -117,12 +97,12 @@ export class TraditionalLoginService {
    *
    * @param email - Email del usuario
    * @param code - Código OTP de 6 dígitos
-   * @returns Observable<boolean> - true si el código es válido
+   * @returns Observable<boolean> - true si el OTP es válido
    */
   validateOtpCode(email: string, code: string): Observable<boolean> {
     return new Observable((observer) => {
       this.otpService.validateOtp(email, code).subscribe({
-        next: (isValid) => {
+        next: (isValid: boolean) => {
           if (isValid) {
             console.log('✅ OTP válido - Procediendo con login');
             this.toastr.success('Código verificado correctamente.', 'Éxito');
@@ -149,70 +129,56 @@ export class TraditionalLoginService {
    * Completa el proceso de login después de validar el código OTP
    *
    * Flujo:
-   * 1. Obtiene el usuario por email
-   * 2. Genera el token JWT con el ID del usuario
-   * 3. Crea la sesión en el backend
-   * 4. Guarda el token en una cookie segura con expiración de 1 semana
-   * 5. Muestra mensaje de éxito
-   * 6. Redirige al dashboard después de 3 segundos
+   * 1. Genera el token JWT con el ID del usuario
+   * 2. Crea la sesión en el backend
+   * 3. Guarda el token en una cookie segura con expiración de 1 semana
+   * 4. Muestra mensaje de éxito
+   * 5. Redirige al dashboard después de 2 segundos
    *
+   * @param userId - ID del usuario autenticado
    * @param email - Email del usuario autenticado
    */
-  completeLogin(email: string): void {
-    // Obtener los datos completos del usuario por su email
-    this.userService.getUserByEmail(email).subscribe({
-      next: (user: User) => {
-        // Generar token JWT utilizando el ID del usuario
-        this.securityService.generateToken(user._id!).subscribe({
-          next: (loginResponse: LoginResponse) => {
-            // Crear objeto Session compatible con el backend
-            const session: Session = {
-              token: loginResponse.token,
-              expiration: loginResponse.expiration,
-              user: loginResponse.user
-            };
+  completeLogin(userId: string, email: string): void {
+    this.securityService.generateToken(userId).subscribe({
+      next: (loginResponse: LoginResponse) => {
 
-            // Persistir la sesión en el backend (MongoDB)
-            this.sessionService.createSession(session).subscribe({
-              next: (createdSession) => {
-                // Guardar el token JWT en una cookie segura del navegador (1 semana)
-                this.cookieService.set('token', createdSession.token!, {
-                  path: '/',
-                  expires: this.TOKEN_EXPIRATION_DAYS,
-                  sameSite: 'Strict',
-                  secure: true // Usar solo en HTTPS en producción
-                } as any);
+        const session: Session = {
+          token: loginResponse.token,
+          expiration: loginResponse.expiration,
+          user: loginResponse.user
+        };
+        console.log(session);
 
-                // Guardar datos del usuario en sessionStorage
-                sessionStorage.setItem('user', JSON.stringify(user));
+        this.sessionService.createSession(session).subscribe({
+          next: (createdSession) => {
 
-                // Mostrar notificación de éxito al usuario
-                this.toastr.success('Sesión iniciada correctamente', 'Login Exitoso');
+            this.cookieService.set('token', createdSession.token!, {
+              path: '/',
+              expires: this.TOKEN_EXPIRATION_DAYS,
+              sameSite: 'Strict',
+              secure: true
+            } as any);
 
-                // Enviar notificación de inicio de sesión
-                const userName = user.name || user.email.split('@')[0];
-                this.notificationService.sendLoginNotification(email, userName).subscribe();
+            sessionStorage.setItem('user', JSON.stringify(loginResponse.user));
 
-                // Redirigir al dashboard principal después de 2 segundos
-                setTimeout(() => {
-                  this.router.navigate(['/main']);
-                }, 2000);
-              },
-              error: (err) => {
-                console.error('❌ Error al crear sesión:', err);
-                this.toastr.error('Error al crear sesión. Intenta de nuevo.', 'Error');
-              }
-            });
+            this.toastr.success('Sesión iniciada correctamente', 'Login Exitoso');
+
+            const userName = loginResponse.user.name || email.split('@')[0];
+            this.notificationService.sendLoginNotification(email, userName).subscribe();
+
+            setTimeout(() => {
+              this.router.navigate(['/main']);
+            }, 2000);
           },
           error: (err) => {
-            console.error('❌ Error al generar token:', err);
-            this.toastr.error('Error al iniciar sesión. Intenta de nuevo.', 'Error');
+            console.error('❌ Error al crear sesión:', err);
+            this.toastr.error('Error al crear sesión. Intenta de nuevo.', 'Error');
           }
         });
       },
       error: (err) => {
-        console.error('❌ Error al obtener usuario:', err);
-        this.toastr.error('Error al obtener datos del usuario.', 'Error');
+        console.error('❌ Error al generar token:', err);
+        this.toastr.error('Error al iniciar sesión. Intenta de nuevo.', 'Error');
       }
     });
   }
