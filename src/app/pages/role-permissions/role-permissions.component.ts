@@ -60,8 +60,8 @@ export class RolePermissionsComponent implements OnInit {
   private convertPermissionsToGenericEntities(permissions: Permission[]): GenericEntity[] {
     return permissions.map(permission => ({
       _id: permission._id,
-      name: `${permission.url} - ${permission.model}`,
-      description: `URL: ${permission.url} | Model: ${permission.model}`,
+      name: `${permission.method} ${permission.url} - ${permission.model}`,
+      description: `Método: ${permission.method} | URL: ${permission.url} | Model: ${permission.model}`,
       ...permission
     }));
   }
