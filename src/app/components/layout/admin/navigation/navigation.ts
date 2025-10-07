@@ -62,6 +62,51 @@ export const NavigationItems: NavigationItem[] = [
             breadcrumbs: false
           }
         ]
+      //inicio rutas cruds
+      },
+      {
+        id: 'UserManagement',
+        title: 'User Management',
+        type: 'collapse',
+        icon: 'ti ti-users',
+        children: [
+          {
+            id: 'users',
+            title: 'Users',
+            type: 'item',
+            url: '/users',
+            breadcrumbs: false
+          },
+          {
+            id: 'roles',
+            title: 'Roles',
+            type: 'item',
+            url: '/roles',
+            breadcrumbs: false
+          },
+          {
+            id: 'permissions',
+            title: 'Permissions',
+            type: 'item',
+            url: '/permissions',
+            breadcrumbs: false
+          },
+          {
+            id: 'user-roles',
+            title: 'User Roles',
+            type: 'item',
+            url: '/user-roles',
+            breadcrumbs: false
+          },
+          {
+            id: 'role-permissions',
+            title: 'Role Permissions',
+            type: 'item',
+            url: '/role-permissions',
+            breadcrumbs: false
+          }
+        ]
+      //fin rutas cruds
       }
     ]
   },

@@ -147,10 +147,17 @@ export class RolePermissionsComponent implements OnInit {
       this.rolePermissionService.getRolePermissionsByRoleId(role._id).subscribe({
         next: (rolePermissions: RolePermission[]) => {
           if (rolePermissions && rolePermissions.length > 0) {
-            this.rolePermissions[role._id] = rolePermissions.map(rp => rp.permission);
-            // Solo agregar roles que tienen permisos asignados
-            if (!this.rolesWithPermissions.find(r => r._id === role._id)) {
-              this.rolesWithPermissions.push(role);
+            // Filtrar permisos válidos antes de mapear
+            const validPermissions = rolePermissions
+              .filter(rp => rp.permission && rp.permission._id)
+              .map(rp => rp.permission);
+
+            if (validPermissions.length > 0) {
+              this.rolePermissions[role._id] = validPermissions;
+              // Solo agregar roles que tienen permisos válidos asignados
+              if (!this.rolesWithPermissions.find(r => r._id === role._id)) {
+                this.rolesWithPermissions.push(role);
+              }
             }
           }
 
@@ -267,8 +274,12 @@ export class RolePermissionsComponent implements OnInit {
           this.rolesWithPermissions = [role];
 
           if (rolePermissions && rolePermissions.length > 0) {
-            // Rol tiene permisos asignados
-            this.rolePermissions[roleId] = rolePermissions.map(rp => rp.permission);
+            // Filtrar permisos válidos antes de mapear
+            const validPermissions = rolePermissions
+              .filter(rp => rp.permission && rp.permission._id)
+              .map(rp => rp.permission);
+
+            this.rolePermissions[roleId] = validPermissions;
           } else {
             // Rol no tiene permisos asignados - inicializar con array vacío
             this.rolePermissions[roleId] = [];
@@ -297,11 +308,23 @@ export class RolePermissionsComponent implements OnInit {
       next: (rolePermissions: RolePermission[]) => {
         if (rolePermissions && rolePermissions.length > 0) {
           // Obtener todos los roles que tienen el permiso buscado
+          // Filtrar solo los que tienen role válido
           const rolesWithSearchedPermission = new Set<string>();
 
           rolePermissions.forEach(rp => {
-            rolesWithSearchedPermission.add(rp.role._id);
+            // Validar que rp.role existe y tiene _id
+            if (rp.role && rp.role._id) {
+              rolesWithSearchedPermission.add(rp.role._id);
+            }
           });
+
+          // Si no hay roles válidos, terminar aquí
+          if (rolesWithSearchedPermission.size === 0) {
+            this.updateGenericData();
+            this.isLoading = false;
+            console.log('No se encontraron roles válidos con este permiso');
+            return;
+          }
 
           // Para cada rol que tiene el permiso buscado, cargar TODOS sus permisos
           let processedRoles = 0;
@@ -314,7 +337,10 @@ export class RolePermissionsComponent implements OnInit {
                 if (role) {
                   this.rolesWithPermissions.push(role);
                   // Guardar TODOS los permisos del rol, no solo el buscado
-                  this.rolePermissions[roleId] = allRolePermissions.map(rp => rp.permission);
+                  // Filtrar permisos válidos
+                  this.rolePermissions[roleId] = allRolePermissions
+                    .filter(rp => rp.permission && rp.permission._id)
+                    .map(rp => rp.permission);
                 }
 
                 processedRoles++;
