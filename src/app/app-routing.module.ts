@@ -80,7 +80,12 @@ const routes: Routes = [
       },
       {
         path: 'role-permissions',
-        loadComponent: () => import('./pages/role-permissions/role-permissions.component').then((m) => m.RolePermissionsComponent)
+        loadComponent: () => import('./pages/role-permissions/role-permissions.component').then((m) => m.RolePermissionsComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/role-permission',
+          method: 'GET'
+        }
       },
       {
         path: 'main',
