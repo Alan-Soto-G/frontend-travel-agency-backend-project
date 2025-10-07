@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { OtpServiceService } from '../../otpService.service';
-import { UserService } from '../../user.service';
+import { OtpServiceService } from '../../notifications/otpService.service';
+import { UserService } from '../../models/user.service';
 import { User } from '../../../models/user.model';
+import { NotificationService } from '../../notifications/notification.service';
 
 /**
  * Servicio para registro tradicional con email/password + verificación OTP
@@ -15,8 +16,6 @@ import { User } from '../../../models/user.model';
  * 3. Valida el código OTP ingresado por el usuario
  * 4. Crea el usuario en el backend
  * 5. Redirige al login para iniciar sesión
- *
- * @author Alan Soto
  * @version 1.0
  */
 @Injectable({
@@ -28,16 +27,18 @@ export class TraditionalRegisterService {
     private toastr: ToastrService,
     private router: Router,
     private otpService: OtpServiceService,
-    private userService: UserService
+    private userService: UserService,
+    private notificationService: NotificationService
   ) {}
 
   /**
    * Valida que el email no exista y envía código OTP
    *
    * @param email - Email del usuario a registrar
+   * @param userName - Nombre del usuario para personalizar el email
    * @returns Observable<boolean> - true si el email no existe y se envió el OTP
    */
-  verifyEmailAndSendOtp(email: string): Observable<boolean> {
+  verifyEmailAndSendOtp(email: string, userName?: string): Observable<boolean> {
     return new Observable(observer => {
       // Verificar que el email no exista en el sistema
       this.userService.getUserByEmail(email).subscribe({
@@ -52,8 +53,11 @@ export class TraditionalRegisterService {
         error: (err) => {
           // Si es error 404, el email no existe y podemos continuar
           if (err.status === 404) {
+            // Usar el nombre proporcionado o extraer del email como fallback
+            const name = userName || email.split('@')[0];
+
             // Generar y enviar código OTP
-            this.otpService.generateOtp(email).subscribe({
+            this.otpService.generateOtp(email, name).subscribe({
               next: () => {
                 console.log('✅ OTP generado y enviado al correo:', email);
                 this.toastr.success('Código de verificación enviado a tu correo.', 'Éxito');
@@ -130,6 +134,10 @@ export class TraditionalRegisterService {
           console.log('✅ Usuario creado:', createdUser);
           this.toastr.success('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'Éxito');
 
+          // Enviar email de bienvenida
+          const userName = createdUser.name || createdUser.email.split('@')[0];
+          this.notificationService.sendWelcomeEmail(createdUser.email, userName).subscribe();
+
           // Redirigir al login después de 2 segundos
           setTimeout(() => {
             this.router.navigate(['/login']);
@@ -147,4 +155,3 @@ export class TraditionalRegisterService {
     });
   }
 }
-

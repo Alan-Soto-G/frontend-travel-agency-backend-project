@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.component';
 import { Permission } from 'src/app/models/permission.model';
-import { PermissionService } from 'src/app/services/permission.service';
+import { PermissionService } from 'src/app/services/models/permission.service';
 import { FormField } from 'src/app/models/form-field.component';
 
 /**

@@ -4,9 +4,9 @@ import { Role } from '../../models/role.model';
 import { Permission } from '../../models/permission.model';
 import { RolePermission } from '../../models/role-permission.model';
 import { GenericEntity } from '../../models/assignment-config.model';
-import { RolePermissionService } from "../../services/role-permission.service";
-import { RoleService } from '../../services/role.service';
-import { PermissionService } from '../../services/permission.service';
+import { RolePermissionService } from "../../services/relations/role-permission.service";
+import { RoleService } from '../../services/models/role.service';
+import { PermissionService } from '../../services/models/permission.service';
 
 @Component({
   selector: 'app-role-permissions',

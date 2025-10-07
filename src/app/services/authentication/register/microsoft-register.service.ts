@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
-import { AuthService } from '../../auth.service';
+import { AuthService } from '../auth.service';
+import { NotificationService } from '../../notifications/notification.service';
+
 /**
  * Servicio para registro con Microsoft OAuth
  *
@@ -11,8 +13,6 @@ import { AuthService } from '../../auth.service';
  * 3. Microsoft devuelve token de autenticación
  * 4. Se crea/actualiza usuario en el backend
  * 5. Se guarda sesión y se redirige al dashboard
- *
- * @author Alan Soto
  * @version 1.0
  */
 @Injectable({
@@ -22,7 +22,8 @@ export class MicrosoftRegisterService {
   constructor(
     private toastr: ToastrService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService
   ) {}
   /**
    * Inicia el flujo de registro con Microsoft OAuth
@@ -38,6 +39,10 @@ export class MicrosoftRegisterService {
         // ✅ Registro exitoso
         console.log('✅ Usuario registrado con Microsoft:', result);
         this.toastr.success('¡Bienvenido con Microsoft!', 'Registro exitoso');
+
+
+
+        //this.notificationService.sendWelcomeEmail(email, name).subscribe();
         // Redirigir al dashboard después de 2 segundos
         setTimeout(() => {
           this.router.navigate(['/main']);

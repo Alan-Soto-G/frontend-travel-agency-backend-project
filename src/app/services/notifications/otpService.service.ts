@@ -28,8 +28,12 @@ export class OtpServiceService {
    * @param email Dirección de correo electrónico del destinatario
    * @returns Observable con el código OTP generado (solo para pruebas)
    */
-  generateOtp(email: string): Observable<string> {
-    return this.http.post(`${this.apiUrl}/generate/${email}`, null, {
+  generateOtp(email: string, userName: string): Observable<string> {
+    return this.http.post(`${this.apiUrl}/generate`,
+      {
+        email: email,
+        userName: userName},
+      {
       responseType: 'text'
     });
   }

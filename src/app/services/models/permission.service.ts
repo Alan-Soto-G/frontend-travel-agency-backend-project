@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Permission } from '../models/permission.model';
+import { Permission } from '../../models/permission.model';
 import { environment } from 'src/environments/environment';
 
 /**

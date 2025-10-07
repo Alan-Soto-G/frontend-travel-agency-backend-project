@@ -2,15 +2,16 @@ import { Injectable } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { OtpServiceService } from '../../otpService.service';
-import { SecurityService } from '../../security.service';
-import { UserService } from '../../user.service';
-import { SessionService } from '../../session.service';
+import { OtpServiceService } from '../../notifications/otpService.service';
+import { SecurityService } from '../security.service';
+import { UserService } from '../../models/user.service';
+import { SessionService } from '../../models/session.service';
 import { CookieService } from 'ngx-cookie-service';
 import { LoginRequest } from '../../../models/login-request.model';
 import { User } from '../../../models/user.model';
 import { LoginResponse } from '../../../models/login-response.model';
 import { Session } from '../../../models/session.model';
+import { NotificationService } from '../../notifications/notification.service';
 
 /**
  * Servicio para autenticación tradicional con email/password + 2FA (OTP)
@@ -30,7 +31,6 @@ import { Session } from '../../../models/session.model';
   providedIn: 'root'
 })
 export class TraditionalLoginService {
-
   constructor(
     private toastr: ToastrService,
     private router: Router,
@@ -38,7 +38,8 @@ export class TraditionalLoginService {
     private securityService: SecurityService,
     private userService: UserService,
     private sessionService: SessionService,
-    private cookieService: CookieService
+    private cookieService: CookieService,
+    private notificationService: NotificationService
   ) {}
 
   /**
@@ -54,18 +55,42 @@ export class TraditionalLoginService {
         next: (response) => {
           if (response.valid) {
             // Generar y enviar código OTP de 6 dígitos al correo del usuario
-            this.otpService.generateOtp(credentials.email).subscribe({
-              next: () => {
-                console.log('✅ OTP generado y enviado al correo:', credentials.email);
-                this.toastr.success('Código de verificación enviado a tu correo', 'Verificación');
-                observer.next(true);
-                observer.complete();
+            this.userService.getUserByEmail(credentials.email).subscribe({
+              next: (user) => {
+                const userName: string = user.name || credentials.email.split('@')[0];
+                this.otpService.generateOtp(credentials.email, userName).subscribe({
+                  next: () => {
+                    console.log('✅ OTP generado y enviado al correo:', credentials.email);
+                    this.toastr.success('Código de verificación enviado a tu correo', 'Verificación');
+                    observer.next(true);
+                    observer.complete();
+                  },
+                  error: (err) => {
+                    console.error('❌ Error al generar OTP:', err);
+                    this.toastr.error('Error al enviar el código de verificación. Intenta de nuevo.', 'Error');
+                    observer.next(false);
+                    observer.complete();
+                  }
+                });
               },
               error: (err) => {
-                console.error('❌ Error al generar OTP:', err);
-                this.toastr.error('Error al enviar el código de verificación. Intenta de nuevo.', 'Error');
-                observer.next(false);
-                observer.complete();
+                console.error('❌ Error al obtener usuario:', err);
+                // Fallback: usar la parte antes del @ del email
+                const userName: string = credentials.email.split('@')[0];
+                this.otpService.generateOtp(credentials.email, userName).subscribe({
+                  next: () => {
+                    console.log('✅ OTP generado y enviado al correo:', credentials.email);
+                    this.toastr.success('Código de verificación enviado a tu correo', 'Verificación');
+                    observer.next(true);
+                    observer.complete();
+                  },
+                  error: (err) => {
+                    console.error('❌ Error al generar OTP:', err);
+                    this.toastr.error('Error al enviar el código de verificación. Intenta de nuevo.', 'Error');
+                    observer.next(false);
+                    observer.complete();
+                  }
+                });
               }
             });
           } else {
@@ -93,7 +118,7 @@ export class TraditionalLoginService {
    * @returns Observable<boolean> - true si el código es válido
    */
   validateOtpCode(email: string, code: string): Observable<boolean> {
-    return new Observable(observer => {
+    return new Observable((observer) => {
       this.otpService.validateOtp(email, code).subscribe({
         next: (isValid) => {
           if (isValid) {
@@ -162,6 +187,10 @@ export class TraditionalLoginService {
                 // Mostrar notificación de éxito al usuario
                 this.toastr.success('Sesión iniciada correctamente', 'Login Exitoso');
 
+                // Enviar notificación de inicio de sesión
+                const userName = user.name || user.email.split('@')[0];
+                this.notificationService.sendLoginNotification(email, userName).subscribe();
+
                 // Redirigir al dashboard principal después de 2 segundos
                 setTimeout(() => {
                   this.router.navigate(['/main']);
@@ -186,4 +215,3 @@ export class TraditionalLoginService {
     });
   }
 }
-

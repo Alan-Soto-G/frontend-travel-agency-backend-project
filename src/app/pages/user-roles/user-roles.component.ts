@@ -4,9 +4,9 @@ import { User } from '../../models/user.model';
 import { Role } from '../../models/role.model';
 import { UserRole } from '../../models/user-role.model';
 import { GenericEntity, AssignmentConfig } from '../../models/assignment-config.model';
-import { UserRoleService } from "../../services/user-role.service";
-import { UserService } from '../../services/user.service';
-import { RoleService } from '../../services/role.service';
+import { UserRoleService } from "../../services/relations/user-role.service";
+import { UserService } from '../../services/models/user.service';
+import { RoleService } from '../../services/models/role.service';
 
 @Component({
   selector: 'app-user-roles',

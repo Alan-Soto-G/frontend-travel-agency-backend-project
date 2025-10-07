@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { TableCrudComponent } from '../../components/table-crud/table-crud.component';
 import { User } from '../../models/user.model';
-import { UserService } from '../../services/user.service';
+import { UserService } from '../../services/models/user.service';
 import { FormField } from '../../models/form-field.component';
 
 /**

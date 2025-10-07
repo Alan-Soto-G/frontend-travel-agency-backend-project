@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
-import { AuthService } from '../../auth.service';
+import { AuthService } from '../auth.service';
 /**
  * Servicio para registro con Google OAuth
  *
@@ -11,8 +11,6 @@ import { AuthService } from '../../auth.service';
  * 3. Google devuelve token de autenticación
  * 4. Se crea/actualiza usuario en el backend
  * 5. Se guarda sesión y se redirige al dashboard
- *
- * @author Alan Soto
  * @version 1.0
  */
 @Injectable({
