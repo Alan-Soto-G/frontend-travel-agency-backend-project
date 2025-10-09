@@ -129,9 +129,9 @@ export class LoginComponent {
           this.closeModal();
           // Get user by email to obtain userId for completeLogin
           this.securityService.getUserByEmail(this.loginData.email).subscribe({
-            next: (user) => {
-              if (user && user._id) {
-                this.traditionalLoginService.completeLogin(user._id, this.loginData.email);
+            next: (response) => {
+              if (response.exists && response.user && response.user._id) {
+                this.traditionalLoginService.completeLogin(response.user._id, this.loginData.email);
               } else {
                 this.toastr.error('Usuario no encontrado', 'Error');
               }

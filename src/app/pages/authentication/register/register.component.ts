@@ -69,6 +69,9 @@ export class RegisterComponent {
   @ViewChild('input5') private input5!: ElementRef<HTMLInputElement>;
   @ViewChild('input6') private input6!: ElementRef<HTMLInputElement>;
 
+  public isLoading: boolean = false;
+  public isOtpStep: boolean = false;
+
   // =================================================================
   // Constructor
   // =================================================================
@@ -97,6 +100,8 @@ export class RegisterComponent {
    * Inicia el proceso de registro tradicional
    */
   public startRegistration(registerForm: NgForm): void {
+    if (this.isLoading) return;
+
     // Validar formulario
     if (!registerForm.valid) {
       this.toastr.error('Por favor rellena los campos de manera correcta.', 'Error');
@@ -109,29 +114,78 @@ export class RegisterComponent {
       return;
     }
 
+    this.isLoading = true;
     // Verificar email y enviar OTP
     this.traditionalRegisterService.verifyEmailAndSendOtp(this.registerData.email, this.registerData.name).subscribe({
       next: (success) => {
+        this.isLoading = false;
         if (success) {
+          this.isOtpStep = true;
           // Abrir el modal de verificación
           this.verifModal.nativeElement.showModal();
 
           // Hacer foco en el primer input
           setTimeout(() => this.input1.nativeElement.focus(), 100);
         }
+      },
+      error: () => {
+        this.isLoading = false;
       }
     });
   }
 
   /**
-   * Completa el registro después de validar el código OTP
+   * Valida el código OTP y crea el usuario si es correcto
    */
-  public completeRegistration(): void {
+  public verifyCode(): void {
+    if (this.isLoading) return;
+
+    if (!this.isCodeComplete()) {
+      this.toastr.warning('Por favor, completa todos los dígitos.', 'Código incompleto');
+      return;
+    }
+
+    const code = this.verificationCode.join('');
+    this.isLoading = true;
+    this.traditionalRegisterService.validateOtpCode(this.registerData.email, code).subscribe({
+      next: (isValid) => {
+        if (isValid) {
+          // Cerrar el modal
+          this.closeModal();
+
+          // Completar el registro
+          this.createUser();
+        } else {
+          this.isLoading = false;
+          // Limpiar inputs
+          this.verificationCode = ['', '', '', '', '', ''];
+          this.input1.nativeElement.focus();
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
+  }
+
+  /**
+   * Crea el usuario en el backend
+   */
+  private createUser(): void {
     this.traditionalRegisterService.createUser({
       name: this.registerData.name,
       email: this.registerData.email,
       password: this.registerData.password
-    }).subscribe();
+    }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.isOtpStep = false;
+        this.resetForm();
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   // =================================================================
@@ -146,11 +200,13 @@ export class RegisterComponent {
     const value = input.value;
 
     // Validar que solo se ingresen dígitos
-    if (!/^\d*$/.test(value)) {
+    if (!/^[0-9]?$/.test(value)) {
       input.value = '';
       this.verificationCode[position - 1] = '';
       return;
     }
+
+    this.verificationCode[position - 1] = value;
 
     // Mover al siguiente input
     if (value && position < 6) {
@@ -175,35 +231,6 @@ export class RegisterComponent {
   }
 
   /**
-   * Valida el código OTP
-   */
-  public verifyCode(): void {
-    if (!this.isCodeComplete()) {
-      this.toastr.warning('Por favor, completa todos los dígitos.', 'Código incompleto');
-      return;
-    }
-
-    const code = this.verificationCode.join('');
-    console.log('🔍 Validando código:', code);
-
-    this.traditionalRegisterService.validateOtpCode(this.registerData.email, code).subscribe({
-      next: (isValid) => {
-        if (isValid) {
-          // Cerrar el modal
-          this.closeModal();
-
-          // Completar el registro
-          this.completeRegistration();
-        } else {
-          // Limpiar inputs
-          this.verificationCode = ['', '', '', '', '', ''];
-          this.input1.nativeElement.focus();
-        }
-      }
-    });
-  }
-
-  /**
    * Cierra el modal de verificación
    */
   public closeModal(): void {
@@ -215,6 +242,11 @@ export class RegisterComponent {
    */
   private isCodeComplete(): boolean {
     return this.verificationCode.every(digit => digit !== '');
+  }
+
+  private resetForm(): void {
+    this.registerData = { name: '', email: '', password: '', confirmPassword: '' };
+    this.verificationCode = ['', '', '', '', '', ''];
   }
 
   // =================================================================

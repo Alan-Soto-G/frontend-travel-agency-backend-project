@@ -42,18 +42,18 @@ export class TraditionalRegisterService {
     return new Observable(observer => {
       // Verificar que el email no exista en el sistema
       this.securityService.getUserByEmail(email).subscribe({
-        next: (user) => {
-          // Si encuentra un usuario, significa que el email ya existe
-          if (user) {
-            console.log(user)
+        next: (response) => {
+          // El backend ahora retorna siempre 200 OK con { exists: true/false }
+          if (response.exists) {
+            // Si el usuario existe, mostrar error y detener el flujo
+            console.log('❌ Email ya registrado:', response.user);
             this.toastr.error('Este correo electrónico ya está registrado.', 'Error');
             observer.next(false);
             observer.complete();
-          }
-        },
-        error: (err) => {
-          // Si es error 404, el email no existe y podemos continuar
-          if (err.status === 404) {
+          } else {
+            // Email disponible, continuar con el envío de OTP
+            console.log('✅ Email disponible:', email);
+
             // Usar el nombre proporcionado o extraer del email como fallback
             const name = userName || email.split('@')[0];
 
@@ -72,12 +72,14 @@ export class TraditionalRegisterService {
                 observer.complete();
               }
             });
-          } else {
-            // Otro tipo de error
-            this.toastr.error('Error al verificar el correo electrónico.', 'Error');
-            observer.next(false);
-            observer.complete();
           }
+        },
+        error: (err) => {
+          // Solo manejar errores de servidor (500) u otros errores de red
+          console.error('❌ Error al verificar email:', err);
+          this.toastr.error('Error al verificar el correo electrónico.', 'Error');
+          observer.next(false);
+          observer.complete();
         }
       });
     });

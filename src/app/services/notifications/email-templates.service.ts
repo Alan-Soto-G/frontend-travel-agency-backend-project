@@ -98,7 +98,7 @@ export class EmailTemplatesService {
             <div style='margin-bottom: 30px;'>
               <span style='font-size: 60px;'>🎉</span>
             </div>
-            <h2 style='color: #333; margin: 0 0 20px 0; font-size: 24px;'>¡Bienvenido, ${userName}!</h2>
+            <h2 style='color: #333; margin: 0 0 20px 0; font-size: 24px;'>¡Bienvenid@, ${userName}!</h2>
             <p style='color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;'>
               Nos alegra tenerte con nosotros. Tu cuenta ha sido creada exitosamente.
             </p>

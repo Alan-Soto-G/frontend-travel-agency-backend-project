@@ -36,13 +36,12 @@ export class SecurityService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Obtiene un usuario por su email.
-   * Devuelve los datos del usuario sin la contraseña.
-   * @param email Email del usuario a buscar
-   * @returns Observable con el usuario (sin password) si existe
+   * Verifica si un usuario existe por su email.
+   * @param email Email del usuario a verificar
+   * @returns Observable con objeto indicando si existe y datos del usuario
    */
-  getUserByEmail(email: string): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/user/${email}`);
+  getUserByEmail(email: string): Observable<{ exists: boolean; user?: User }> {
+    return this.http.get<{ exists: boolean; user?: User }>(`${this.apiUrl}/user/${email}`);
   }
 
   /**

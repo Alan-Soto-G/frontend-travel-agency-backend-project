@@ -74,7 +74,7 @@ export class NotificationService {
         [email],
         '🎊 ¡Bienvenid@ a nuestra plataforma! 🎊',
         content,
-        true
+        false
       ).subscribe({
         next: () => {
           console.log('✅ Email de bienvenida enviado a:', email);
