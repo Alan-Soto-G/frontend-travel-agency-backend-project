@@ -2,7 +2,7 @@ import { Component, ElementRef, ViewChild, NgZone } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { LoginRequest } from '../../../models/login-request.model';
+import { LoginRequest } from '../../../models/security-models/login-request.model';
 import { RecapchaComponent } from 'src/app/components/recapcha/recapcha.component';
 import { TraditionalLoginService } from '../../../services/authentication/login/traditional-login.service';
 import { GoogleLoginService } from '../../../services/authentication/login/google-login.service';

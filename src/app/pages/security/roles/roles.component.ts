@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { TableCrudComponent } from '../../components/table-crud/table-crud.component';
-import { Role } from '../../models/role.model';
-import { RoleService } from '../../services/models/role.service';
-import { FormField } from '../../models/form-field.component';
+import { TableCrudComponent } from '../../../components/table-crud/table-crud.component';
+import { Role } from '../../../models/security-models/role.model';
+import { RoleService } from '../../../services/models/security-models/role.service';
+import { FormField } from '../../../models/security-models/form-field.component';
 
 /**
  * RolesComponent

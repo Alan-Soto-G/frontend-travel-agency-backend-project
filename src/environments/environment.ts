@@ -9,6 +9,8 @@ export const environment = {
   production: false,
   apiUrl: 'http://localhost:8081/api/',
 
+  businessApiUrl: 'http://localhost:3333/api/',
+
   firebase: {
     apiKey: "AIzaSyCDdtpmutpi0uWMSzmNR3QHDp4y5ErDAUw",
     authDomain: "project-travelagency.firebaseapp.com",

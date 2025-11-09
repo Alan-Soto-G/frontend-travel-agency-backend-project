@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { User } from '../../models/user.model';
-import { Permission } from '../../models/permission.model';
+import { User } from '../../models/security-models/user.model';
+import { Permission } from '../../models/security-models/permission.model';
 import { environment } from 'src/environments/environment';
-import { LoginResponse } from '../../models/login-response.model';
-import { LoginRequest } from '../../models/login-request.model';
+import { LoginResponse } from '../../models/security-models/login-response.model';
+import { LoginRequest } from '../../models/security-models/login-request.model';
 
 /**
  * Interfaz para la respuesta de verificación de credenciales.

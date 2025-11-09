@@ -4,13 +4,13 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { OtpServiceService } from '../../notifications/otpService.service';
 import { SecurityService } from '../security.service';
-import { UserService } from '../../models/user.service';
-import { SessionService } from '../../models/session.service';
+import { UserService } from '../../models/security-models/user.service';
+import { SessionService } from '../../models/security-models/session.service';
 import { CookieService } from 'ngx-cookie-service';
-import { LoginRequest } from '../../../models/login-request.model';
-import { User } from '../../../models/user.model';
-import { LoginResponse } from '../../../models/login-response.model';
-import { Session } from '../../../models/session.model';
+import { LoginRequest } from '../../../models/security-models/login-request.model';
+import { User } from '../../../models/security-models/user.model';
+import { LoginResponse } from '../../../models/security-models/login-response.model';
+import { Session } from '../../../models/security-models/session.model';
 import { NotificationService } from '../../notifications/notification.service';
 
 /**

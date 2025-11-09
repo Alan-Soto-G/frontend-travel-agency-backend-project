@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { OtpServiceService } from '../../notifications/otpService.service';
 import { SecurityService } from '../security.service';
-import { User } from '../../../models/user.model';
+import { User } from '../../../models/security-models/user.model';
 import { NotificationService } from '../../notifications/notification.service';
 
 /**

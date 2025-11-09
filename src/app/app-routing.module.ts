@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AdminComponent } from './components/layout/admin/admin.component';
 import { GuestComponent } from './components/layout/guest/guest.component';
 import { HttpClientModule } from '@angular/common/http';
-import { PermissionsComponent } from './pages/permissions/permissions.component';
+import { PermissionsComponent } from './pages/security/permissions/permissions.component';
 import { authGuard } from './guard/auth.guard';
 import { permissionGuard } from './guard/permission.guard';
 
@@ -44,7 +44,7 @@ const routes: Routes = [
       },
       {
         path: 'users',
-        loadComponent: () => import('./pages/users/users.component').then((m) => m.UsersComponent),
+        loadComponent: () => import('./pages/security/users/users.component').then((m) => m.UsersComponent),
         canActivate: [permissionGuard],
         data: {
           apiUrl: '/api/users',
@@ -53,7 +53,7 @@ const routes: Routes = [
       },
       {
         path: 'roles',
-        loadComponent: () => import('./pages/roles/roles.component').then((m) => m.RolesComponent),
+        loadComponent: () => import('./pages/security/roles/roles.component').then((m) => m.RolesComponent),
         canActivate: [permissionGuard],
         data: {
           apiUrl: '/api/roles',
@@ -71,7 +71,7 @@ const routes: Routes = [
       },
       {
         path: 'user-roles',
-        loadComponent: () => import('./pages/user-roles/user-roles.component').then((m) => m.UserRolesComponent),
+        loadComponent: () => import('./pages/security/user-roles/user-roles.component').then((m) => m.UserRolesComponent),
         canActivate: [permissionGuard],
         data: {
           apiUrl: '/api/user-role',
@@ -80,13 +80,51 @@ const routes: Routes = [
       },
       {
         path: 'role-permissions',
-        loadComponent: () => import('./pages/role-permissions/role-permissions.component').then((m) => m.RolePermissionsComponent),
+        loadComponent: () => import('./pages/security/role-permissions/role-permissions.component').then((m) => m.RolePermissionsComponent),
         canActivate: [permissionGuard],
         data: {
           apiUrl: '/api/role-permission',
           method: 'GET'
         }
       },
+      //business
+      {
+        path: 'trips',
+        loadComponent: () => import('./pages/business/trips/trips.component').then((m) => m.TripsComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/trips',
+          method: 'GET'
+        }
+      },
+            {
+        path: 'invoices',
+        loadComponent: () => import('./pages/business/invoices/invoices.component').then((m) => m.InvoicesComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/invoices',
+          method: 'GET'
+        }
+      },
+      {
+        path: 'fees',
+        loadComponent: () => import('./pages/business/fees/fees.component').then((m) => m.FeesComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/fees',
+          method: 'GET'
+        }
+      },
+      {
+        path: 'bank-cards',
+        loadComponent: () => import('./pages/business/bank-cards/bank-cards.component').then((m) => m.BankCardsComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/bank_cards',
+          method: 'GET'
+        }
+      },
+
       {
         path: 'main',
         loadComponent: () => import('./pages/main/main.component').then((c) => c.MainComponent)

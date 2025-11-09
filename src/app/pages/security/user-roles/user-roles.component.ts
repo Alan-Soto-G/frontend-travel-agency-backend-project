@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { AsignacionCrudComponent } from '../../components/asignacion-crud/asignacion-crud.component';
-import { User } from '../../models/user.model';
-import { Role } from '../../models/role.model';
-import { UserRole } from '../../models/user-role.model';
-import { GenericEntity, AssignmentConfig } from '../../models/assignment-config.model';
-import { UserRoleService } from "../../services/relations/user-role.service";
-import { UserService } from '../../services/models/user.service';
-import { RoleService } from '../../services/models/role.service';
+import { AsignacionCrudComponent } from '../../../components/asignacion-crud/asignacion-crud.component';
+import { User } from '../../../models/security-models/user.model';
+import { Role } from '../../../models/security-models/role.model';
+import { UserRole } from '../../../models/security-models/user-role.model';
+import { GenericEntity, AssignmentConfig } from '../../../models/security-models/assignment-config.model';
+import { UserRoleService } from "../../../services/relations/user-role.service";
+import { UserService } from '../../../services/models/security-models/user.service';
+import { RoleService } from '../../../services/models/security-models/role.service';
 
 @Component({
   selector: 'app-user-roles',
