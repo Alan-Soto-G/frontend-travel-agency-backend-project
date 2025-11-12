@@ -69,6 +69,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'User Management',
         type: 'collapse',
         icon: 'ti ti-users',
+        role: ['admin', 'manager'], // 🔥 Solo visible para estos roles
         children: [
           {
             id: 'users',
@@ -107,7 +108,44 @@ export const NavigationItems: NavigationItem[] = [
           }
         ]
       //fin rutas cruds
-      }
+      },
+          {
+      id: 'TravelAgency',
+      title: 'Travel Agency',
+      type: 'collapse',
+      icon: 'ti ti-plane',
+      children: [
+        {
+          id: 'trips',
+          title: 'Trips',
+          type: 'item',
+          url: '/trips',
+          breadcrumbs: false
+        },
+        {
+          id: 'invoices',
+          title: 'Invoices',
+          type: 'item',
+          url: '/invoices',
+          breadcrumbs: false
+        },
+        {
+          id: 'fees',
+          title: 'Fees',
+          type: 'item',
+          url: '/fees',
+          breadcrumbs: false
+        },
+        {
+          id: 'bank-cards',
+          title: 'Bank Cards',
+          type: 'item',
+          url: '/bank-cards',
+          breadcrumbs: false
+        }
+      ]
+    }
+
     ]
   },
   {

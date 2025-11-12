@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GenericEntity, AssignmentConfig, AssignmentRelation } from '../../models/assignment-config.model';
+import { GenericEntity, AssignmentConfig, AssignmentRelation } from '../../models/security-models/assignment-config.model';
 
 @Component({
   selector: 'app-asignacion-crud',

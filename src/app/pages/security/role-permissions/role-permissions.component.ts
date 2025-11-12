@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { AsignacionCrudComponent } from '../../components/asignacion-crud/asignacion-crud.component';
-import { Role } from '../../models/role.model';
-import { Permission } from '../../models/permission.model';
-import { RolePermission } from '../../models/role-permission.model';
-import { GenericEntity } from '../../models/assignment-config.model';
-import { RolePermissionService } from "../../services/relations/role-permission.service";
-import { RoleService } from '../../services/models/role.service';
-import { PermissionService } from '../../services/models/permission.service';
+import { AsignacionCrudComponent } from '../../../components/asignacion-crud/asignacion-crud.component';
+import { Role } from '../../../models/security-models/role.model';
+import { Permission } from '../../../models/security-models/permission.model';
+import { RolePermission } from '../../../models/security-models/role-permission.model';
+import { GenericEntity } from '../../../models/security-models/assignment-config.model';
+import { RolePermissionService } from "../../../services/relations/role-permission.service";
+import { RoleService } from '../../../services/models/security-models/role.service';
+import { PermissionService } from '../../../services/models/security-models/permission.service';
 
 @Component({
   selector: 'app-role-permissions',

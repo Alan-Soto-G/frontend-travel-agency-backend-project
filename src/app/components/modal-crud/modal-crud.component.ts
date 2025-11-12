@@ -1,5 +1,5 @@
 import { Component, Input, Output, ViewChild, ElementRef, EventEmitter } from '@angular/core';
-import { FormField } from '../../models/form-field.component';
+import { FormField } from '../../models/security-models/form-field.component';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 

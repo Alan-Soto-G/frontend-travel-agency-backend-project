@@ -2,7 +2,7 @@ import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalCrudComponent } from '../modal-crud/modal-crud.component';
-import { FormField } from '../../models/form-field.component';
+import { FormField } from '../../models/security-models/form-field.component';
 
 /**
  * TableCrudComponent
