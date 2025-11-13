@@ -4,14 +4,27 @@ import { Invoice } from 'src/app/models/business-models/invoice.model';
 import { InvoiceService } from 'src/app/services/models/business-models/invoice.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
 
+/**
+ * InvoicesComponent
+ *
+ * Componente de página para la gestión de facturas (Invoices).
+ * Muestra una tabla CRUD reutilizable para las facturas y define los campos y funciones específicas.
+ * Utiliza el servicio InvoiceService para operaciones CRUD.
+ */
 @Component({
   selector: 'app-invoices',
   imports: [TableCrudComponent],
   templateUrl: './invoices.component.html',
 })
 export class InvoicesComponent implements OnInit {
+  /**
+   * Lista de facturas cargadas desde el backend.
+   */
   invoices: Invoice[] = [];
 
+  /**
+   * Encabezados de la tabla.
+   */
   headTable: string[] = [
     'ID',
     'Tarifa ID',
@@ -24,43 +37,85 @@ export class InvoicesComponent implements OnInit {
     'Eliminar',
   ];
 
+  /**
+   * Campos de los datos a mostrar en la tabla.
+   */
   itemsData: string[] = [
     'id',
-    'fee_id',
-    'invoice_number',
-    'total_amount',
-    'issue_date',
-    'payment_date',
-    'payment_method',
+    'feeId',           // ✅ Cambiado de fee_id a feeId (camelCase)
+    'invoiceNumber',   // ✅ Cambiado de invoice_number a invoiceNumber
+    'totalAmount',     // ✅ Cambiado de total_amount a totalAmount
+    'issueDate',       // ✅ Cambiado de issue_date a issueDate
+    'paymentDate',     // ✅ Cambiado de payment_date a paymentDate
+    'paymentMethod',   // ✅ Cambiado de payment_method a paymentMethod
   ];
 
+  /**
+   * Diccionario de funciones CRUD para pasar al componente de tabla.
+   */
   arrayFunctions: Record<string, Function>;
 
+  /**
+   * Definición de los campos del formulario para el modal CRUD.
+   */
   fields: FormField[] = [
-    { name: 'fee_id', label: 'ID de la Tarifa', type: 'number', required: true },
+    { 
+      name: 'feeId',           // ✅ Cambiado a camelCase
+      label: 'ID de la Tarifa', 
+      type: 'number', 
+      placeholder: 'Ingrese el ID de la tarifa',
+      required: true 
+    },
     {
-      name: 'invoice_number',
+      name: 'invoiceNumber',   // ✅ Cambiado a camelCase
       label: 'Número de Factura',
       type: 'text',
+      placeholder: 'Ingrese el número de factura',
       required: true,
+      min: 3,
+      max: 255,
     },
-    { name: 'total_amount', label: 'Monto Total', type: 'number', required: true },
-    { name: 'issue_date', label: 'Fecha de Emisión', type: 'date', required: true },
-    { name: 'payment_date', label: 'Fecha de Pago', type: 'date', required: true },
+    { 
+      name: 'totalAmount',     // ✅ Cambiado a camelCase
+      label: 'Monto Total', 
+      type: 'number', 
+      placeholder: 'Ingrese el monto total',
+      required: true 
+    },
+    { 
+      name: 'issueDate',       // ✅ Cambiado a camelCase
+      label: 'Fecha de Emisión', 
+      type: 'date', 
+      placeholder: 'Seleccione la fecha de emisión',
+      required: true 
+    },
+    { 
+      name: 'paymentDate',     // ✅ Cambiado a camelCase
+      label: 'Fecha de Pago', 
+      type: 'date', 
+      placeholder: 'Seleccione la fecha de pago (opcional)',
+      required: false          // ✅ Cambiado a false porque puede ser null
+    },
     {
-      name: 'payment_method',
+      name: 'paymentMethod',   // ✅ Cambiado a camelCase
       label: 'Método de Pago',
       type: 'select',
       options: [
+        { value: 'cash', text: 'Efectivo' },
         { value: 'credit_card', text: 'Tarjeta de Crédito' },
         { value: 'debit_card', text: 'Tarjeta Débito' },
-        { value: 'cash', text: 'Efectivo' },
-        { value: 'transfer', text: 'Transferencia' },
+        { value: 'bank_transfer', text: 'Transferencia Bancaria' },
+        { value: 'paypal', text: 'PayPal' },
+        { value: 'other', text: 'Otro' },
       ],
       required: true,
     },
   ];
 
+  /**
+   * Constructor: inicializa el servicio y las funciones CRUD.
+   * @param invoiceService Servicio para gestionar las facturas
+   */
   constructor(private invoiceService: InvoiceService) {
     this.arrayFunctions = {
       update: (id?: string, invoice?: Invoice) => this.update(id, invoice),
@@ -70,17 +125,30 @@ export class InvoicesComponent implements OnInit {
     };
   }
 
+  /**
+   * Carga inicial de las facturas al montar el componente.
+   */
   ngOnInit(): void {
     this.loadInvoices();
   }
 
+  /**
+   * Carga la lista de facturas desde el backend.
+   */
   loadInvoices(): void {
     this.invoiceService.getInvoices().subscribe({
-      next: (data) => (this.invoices = data),
+      next: (res: any) => {
+        this.invoices = res.data;  // ✅ Extraer solo el array de data
+        console.log('Facturas cargadas:', this.invoices);
+      },
       error: (err) => console.error('Error al cargar facturas', err),
     });
   }
 
+  /**
+   * Busca una factura por ID.
+   * @param id ID de la factura
+   */
   findById(id: string): void {
     this.invoiceService.getInvoiceById(id).subscribe({
       next: (data) => console.log('Factura encontrada:', data),
@@ -88,6 +156,11 @@ export class InvoicesComponent implements OnInit {
     });
   }
 
+  /**
+   * Actualiza una factura.
+   * @param id ID de la factura
+   * @param invoice Datos actualizados
+   */
   update(id?: string, invoice?: Invoice): void {
     if (id && invoice) {
       this.invoiceService.updateInvoice(id, invoice).subscribe({
@@ -97,6 +170,10 @@ export class InvoicesComponent implements OnInit {
     }
   }
 
+  /**
+   * Crea una nueva factura.
+   * @param invoice Datos de la nueva factura
+   */
   create(invoice?: Invoice): void {
     if (invoice) {
       this.invoiceService.createInvoice(invoice).subscribe({
@@ -106,6 +183,10 @@ export class InvoicesComponent implements OnInit {
     }
   }
 
+  /**
+   * Elimina una factura.
+   * @param id ID de la factura a eliminar
+   */
   delete(id: string): void {
     this.invoiceService.deleteInvoice(id).subscribe({
       next: () => this.loadInvoices(),

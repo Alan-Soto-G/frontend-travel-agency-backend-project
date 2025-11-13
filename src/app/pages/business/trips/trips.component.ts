@@ -27,9 +27,14 @@ export class TripsComponent implements OnInit {
    */
   headTable: string[] = [
     'ID',
+    'Nombre',
+    'Destino',
+    'Precio',
+    'Capacidad',
+    'Disponibles',
+    'Estado',
     'Fecha Inicio',
     'Fecha Fin',
-    'Destino',
     'Actualizar',
     'Eliminar'
   ];
@@ -37,8 +42,17 @@ export class TripsComponent implements OnInit {
   /**
    * Campos de los datos a mostrar en la tabla.
    */
-  itemsData: string[] = ['id', 'startDate', 'endDate', 'destination'];
-
+  itemsData: string[] = [
+    'id',
+    'name',
+    'destination',
+    'price',
+    'capacity',
+    'availableSeats',
+    'status',
+    'startDate',
+    'endDate'
+  ];
 
   /**
    * Diccionario de funciones CRUD para pasar al componente de tabla.
@@ -50,18 +64,21 @@ export class TripsComponent implements OnInit {
    */
   fields: FormField[] = [
     {
-      name: 'start_date',
-      label: 'Fecha de Inicio',
-      type: 'date',
-      placeholder: 'Seleccione la fecha de inicio',
+      name: 'name',
+      label: 'Nombre del Viaje',
+      type: 'text',
+      placeholder: 'Ingrese el nombre del viaje',
       required: true,
+      min: 3,
+      max: 255,
     },
     {
-      name: 'end_date',
-      label: 'Fecha de Fin',
-      type: 'date',
-      placeholder: 'Seleccione la fecha de fin',
-      required: true,
+      name: 'description',
+      label: 'Descripción',
+      type: 'textarea',
+      placeholder: 'Ingrese una descripción (opcional)',
+      required: false,
+      max: 500,
     },
     {
       name: 'destination',
@@ -71,6 +88,51 @@ export class TripsComponent implements OnInit {
       required: true,
       min: 3,
       max: 100,
+    },
+    {
+      name: 'startDate',
+      label: 'Fecha de Inicio',
+      type: 'date',
+      placeholder: 'Seleccione la fecha de inicio',
+      required: true,
+    },
+    {
+      name: 'endDate',
+      label: 'Fecha de Fin',
+      type: 'date',
+      placeholder: 'Seleccione la fecha de fin',
+      required: true,
+    },
+    {
+      name: 'price',
+      label: 'Precio',
+      type: 'number',
+      placeholder: 'Ingrese el precio del viaje',
+      required: true,
+    },
+    {
+      name: 'capacity',
+      label: 'Capacidad',
+      type: 'number',
+      placeholder: 'Ingrese la capacidad total',
+      required: true,
+    },
+    {
+      name: 'availableSeats',
+      label: 'Cupos Disponibles',
+      type: 'number',
+      placeholder: 'Ingrese los cupos disponibles',
+      required: true,
+    },
+    {
+      name: 'status',
+      label: 'Estado',
+      type: 'select',
+      options: [
+    { text: 'Activo', value: 'active' },
+    { text: 'Inactivo', value: 'inactive' },
+      ],
+      required: true,
     },
   ];
 
@@ -97,16 +159,15 @@ export class TripsComponent implements OnInit {
   /**
    * Carga la lista de viajes desde el backend.
    */
-loadTrips(): void {
-  this.tripService.getTrips().subscribe({
-    next: (res: any) => {
-      this.trips = res.data;  // ✅ Solo el array de viajes
-      console.log(this.trips); // Verifica que se cargue correctamente
-    },
-    error: (err) => console.error('Error al cargar viajes', err),
-  });
-}
-
+  loadTrips(): void {
+    this.tripService.getTrips().subscribe({
+      next: (res: any) => {
+        this.trips = res.data;  // ✅ Solo el array de viajes
+        console.log(this.trips); // Verifica que se cargue correctamente
+      },
+      error: (err) => console.error('Error al cargar viajes', err),
+    });
+  }
 
   /**
    * Busca un viaje por ID.

@@ -19,6 +19,7 @@ export class TripService {
   }
 
   createTrip(trip: Trip): Observable<Trip> {
+    console.log('📦 Datos enviados al backend:', trip);
     return this.http.post<Trip>(this.businessApiUrl, trip);
   }
 
