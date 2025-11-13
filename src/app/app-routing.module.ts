@@ -120,7 +120,7 @@ const routes: Routes = [
         loadComponent: () => import('./pages/business/bank-cards/bank-cards.component').then((m) => m.BankCardsComponent),
         canActivate: [permissionGuard],
         data: {
-          apiUrl: '/api/bank_cards',
+          apiUrl: '/api/bank-cards',
           method: 'GET'
         }
       },
