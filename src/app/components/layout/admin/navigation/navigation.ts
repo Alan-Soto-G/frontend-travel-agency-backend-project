@@ -158,6 +158,13 @@ export const NavigationItems: NavigationItem[] = [
           breadcrumbs: false
         },
         {
+          id: 'transportation-services',
+          title: 'Transportation Services',
+          type: 'item',
+          url: '/transportation-services',
+          breadcrumbs: false
+        },
+        {
           id: 'plans',
           title: 'Plans',
           type: 'item',

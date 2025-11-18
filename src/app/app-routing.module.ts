@@ -143,6 +143,7 @@ const routes: Routes = [
         }
       },
 
+
       {
         path: 'plans',
         loadComponent: () => import('./pages/business/plans/plans.component').then((m) => m.PlansComponent),
@@ -158,6 +159,15 @@ const routes: Routes = [
         canActivate: [permissionGuard],
         data: {
           apiUrl: '/api/journeys',
+          method: 'GET'
+        }
+      },
+      {
+        path: 'transportation-services',
+        loadComponent: () => import('./pages/business/transportation-service/transportation-service.component').then((m) => m.TransportationServiceComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/transportation-services',
           method: 'GET'
         }
       },
