@@ -231,7 +231,8 @@ export class TableCrudComponent {
         this.messageModal = '';
         this.textButtonModal = 'Guardar 💾';
         // @ts-ignore
-        this.formDataModal = {...this.data.find(item => item._id === id)} || {};
+        // Soporte para MongoDB (_id) y PostgreSQL (id)
+        this.formDataModal = {...this.data.find(item => item._id === id || item.id === id)} || {};
         // Eliminar el campo password para que se muestre vacío en modo edición
         if (this.formDataModal.password !== undefined) {
           delete this.formDataModal.password;

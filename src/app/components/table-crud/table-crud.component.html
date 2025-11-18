@@ -62,13 +62,13 @@
               {{ getNestedValue(row, col) }}
             </td>
             <td data-label="Editar">
-              <button class="btn btn-sm btn-info" (click)="handleActionClick('edit', row._id)">
+              <button class="btn btn-sm btn-info" (click)="handleActionClick('edit', row._id || row.id)">
                 <span class="d-none d-md-inline">Edit</span>
                 <span class="d-md-none">✏️</span>
               </button>
             </td>
             <td data-label="Eliminar">
-              <button class="btn btn-sm btn-danger" (click)="handleActionClick('delete', row._id)">
+              <button class="btn btn-sm btn-danger" (click)="handleActionClick('delete', row._id || row.id)">
                 <span class="d-none d-md-inline">Delete</span>
                 <span class="d-md-none">🗑️</span>
               </button>
