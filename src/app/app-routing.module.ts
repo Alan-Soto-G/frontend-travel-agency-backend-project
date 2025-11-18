@@ -153,6 +153,15 @@ const routes: Routes = [
         }
       },
       {
+        path: 'journeys',
+        loadComponent: () => import('./pages/business/journeys/journeys.component').then((m) => m.JourneysComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/journeys',
+          method: 'GET'
+        }
+      },
+      {
         path: 'main',
         loadComponent: () => import('./pages/main/main.component').then((c) => c.MainComponent)
         // Sin guard de permisos - acceso libre para usuarios autenticados
