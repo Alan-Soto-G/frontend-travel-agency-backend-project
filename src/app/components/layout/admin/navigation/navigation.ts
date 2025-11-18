@@ -156,6 +156,13 @@ export const NavigationItems: NavigationItem[] = [
           type: 'item',
           url: '/tourist-activities',
           breadcrumbs: false
+        },
+        {
+          id: 'plans',
+          title: 'Plans',
+          type: 'item',
+          url: '/plans',
+          breadcrumbs: false
         }
       ]
     }

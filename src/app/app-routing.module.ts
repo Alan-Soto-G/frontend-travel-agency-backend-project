@@ -144,6 +144,15 @@ const routes: Routes = [
       },
 
       {
+        path: 'plans',
+        loadComponent: () => import('./pages/business/plans/plans.component').then((m) => m.PlansComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/plans',
+          method: 'GET'
+        }
+      },
+      {
         path: 'main',
         loadComponent: () => import('./pages/main/main.component').then((c) => c.MainComponent)
         // Sin guard de permisos - acceso libre para usuarios autenticados
