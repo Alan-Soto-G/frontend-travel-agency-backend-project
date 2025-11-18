@@ -123,6 +123,13 @@ export const NavigationItems: NavigationItem[] = [
           breadcrumbs: false
         },
         {
+          id: 'clients',
+          title: 'Clients',
+          type: 'item',
+          url: '/clients',
+          breadcrumbs: false
+        },
+        {
           id: 'invoices',
           title: 'Invoices',
           type: 'item',
@@ -172,10 +179,17 @@ export const NavigationItems: NavigationItem[] = [
           breadcrumbs: false
         },
         {
-          id: 'journeys',
-          title: 'Journeys',
+          id: 'transport-itineraries',
+          title: 'Transport Itineraries',
           type: 'item',
-          url: '/journeys',
+          url: '/transport-itineraries',
+          breadcrumbs: false
+        },
+        {
+          id: 'vehicles',
+          title: 'Vehicles',
+          type: 'item',
+          url: '/vehicles',
           breadcrumbs: false
         }
       ]
