@@ -171,6 +171,24 @@ const routes: Routes = [
         }
       },
       {
+        path: 'transport-itineraries',
+        loadComponent: () => import('./pages/business/transport-itineraries/transport-itineraries.component').then((m) => m.TransportItinerariesComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/transport-itineraries',
+          method: 'GET'
+        }
+      },
+      {
+        path: 'vehicles',
+        loadComponent: () => import('./pages/business/vehicles/vehicles.component').then((m) => m.VehiclesComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/vehicles',
+          method: 'GET'
+        }
+      },
+      {
         path: 'main',
         loadComponent: () => import('./pages/main/main.component').then((c) => c.MainComponent)
         // Sin guard de permisos - acceso libre para usuarios autenticados

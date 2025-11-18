@@ -103,9 +103,13 @@ export class ClientsComponent implements OnInit {
     {
       name: 'isVip',
       label: '¿Es VIP?',
-      type: 'checkbox',
-      placeholder: '',
-      required: false
+      type: 'select',
+      placeholder: 'Seleccione si es VIP',
+      required: false,
+      options: [
+        { value: 'true', text: 'True' },
+        { value: 'false', text: 'False' }
+      ]
     },
   ];
 
@@ -191,4 +195,5 @@ export class ClientsComponent implements OnInit {
     });
   }
 }
+
 
