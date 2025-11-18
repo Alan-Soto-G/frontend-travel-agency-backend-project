@@ -142,6 +142,20 @@ export const NavigationItems: NavigationItem[] = [
           type: 'item',
           url: '/bank-cards',
           breadcrumbs: false
+        },
+        {
+          id: 'rooms',
+          title: 'Rooms',
+          type: 'item',
+          url: '/rooms',
+          breadcrumbs: false
+        },
+        {
+          id: 'tourist-activities',
+          title: 'Tourist Activities',
+          type: 'item',
+          url: '/tourist-activities',
+          breadcrumbs: false
         }
       ]
     }
