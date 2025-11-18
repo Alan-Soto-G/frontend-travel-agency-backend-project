@@ -124,7 +124,34 @@ const routes: Routes = [
           method: 'GET'
         }
       },
+      {
+        path: 'rooms',
+        loadComponent: () => import('./pages/business/rooms/rooms.component').then((m) => m.RoomsComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/rooms',
+          method: 'GET'
+        }
+      },
+      {
+        path: 'tourist-activities',
+        loadComponent: () => import('./pages/business/tourist-activities/tourist-activities.component').then((m) => m.TouristActivitiesComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/tourist-activities',
+          method: 'GET'
+        }
+      },
 
+      {
+        path: 'plans',
+        loadComponent: () => import('./pages/business/plans/plans.component').then((m) => m.PlansComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/plans',
+          method: 'GET'
+        }
+      },
       {
         path: 'main',
         loadComponent: () => import('./pages/main/main.component').then((c) => c.MainComponent)
