@@ -97,7 +97,16 @@ const routes: Routes = [
           method: 'GET'
         }
       },
-            {
+      {
+        path: 'clients',
+        loadComponent: () => import('./pages/business/clients/clients.component').then((m) => m.ClientsComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/clients',
+          method: 'GET'
+        }
+      },
+      {
         path: 'invoices',
         loadComponent: () => import('./pages/business/invoices/invoices.component').then((m) => m.InvoicesComponent),
         canActivate: [permissionGuard],

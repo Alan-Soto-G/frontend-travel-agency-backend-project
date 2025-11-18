@@ -123,6 +123,13 @@ export const NavigationItems: NavigationItem[] = [
           breadcrumbs: false
         },
         {
+          id: 'clients',
+          title: 'Clients',
+          type: 'item',
+          url: '/clients',
+          breadcrumbs: false
+        },
+        {
           id: 'invoices',
           title: 'Invoices',
           type: 'item',
