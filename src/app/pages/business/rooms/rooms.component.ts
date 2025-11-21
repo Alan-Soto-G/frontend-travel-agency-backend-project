@@ -109,10 +109,10 @@ export class RoomsComponent implements OnInit {
       placeholder: 'Seleccione el estado',
       required: false,
       options: [
-        { value: 'available', text: 'Disponible' },
-        { value: 'occupied', text: 'Ocupada' },
-        { value: 'maintenance', text: 'Mantenimiento' },
-        { value: 'cleaning', text: 'Limpieza' }
+{ value: 'available', label: 'Disponible' },
+{ value: 'occupied', label: 'Ocupada' },
+{ value: 'maintenance', label: 'Mantenimiento' },
+{ value: 'cleaning', label: 'Limpieza' }
       ]
     },
   ];

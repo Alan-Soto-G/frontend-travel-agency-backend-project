@@ -17,43 +17,106 @@
       @for (field of fields; track field.name) {
         <div class="mb-3">
           <label [for]="field.name" class="form-label">{{ field.label }}</label>
-          <input
-            [id]="field.name"
-            [name]="field.name"
-            [type]="field.type"
-            [placeholder]="field.placeholder"
-            [required]="field.type === 'password' && typeService === 'edit' ? false : field.required"
-            [minlength]="field.min"
-            [maxlength]="field.max"
-            [pattern]="field.pattern"
-            [(ngModel)]="formData[field.name]"
-            class="form-control"
-            [class.is-invalid]="fieldRef.invalid && fieldRef.touched"
-            #fieldRef="ngModel"
-          />
+          
+          <!-- SELECT FIELD -->
+          @if (field.type === 'select') {
+            <select
+              [id]="field.name"
+              [name]="field.name"
+              [required]="field.required"
+              [(ngModel)]="formData[field.name]"
+              class="form-select"
+              [class.is-invalid]="fieldRef.invalid && fieldRef.touched"
+              #fieldRef="ngModel"
+            >
+              <option value="" disabled selected>{{ field.placeholder || 'Seleccione una opción' }}</option>
+              @for (option of field.options; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
 
-          @if (fieldRef.invalid && fieldRef.touched) {
-            <div class="text-danger small mt-1">
-              @if (fieldRef.errors?.['required']) {
-                Este campo es requerido
-              }
-              @if (fieldRef.errors?.['email']) {
-                Ingrese un email válido
-              }
-              @if (fieldRef.errors?.['minlength']) {
-                Mínimo {{ field.min }} caracteres
-              }
-              @if (fieldRef.errors?.['maxlength']) {
-                Máximo {{ field.max }} caracteres
-              }
-              @if (fieldRef.errors?.['pattern']) {
-                @if (field.type === 'password') {
-                  La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial
-                } @else {
-                  Formato inválido
+            @if (fieldRef.invalid && fieldRef.touched) {
+              <div class="text-danger small mt-1">
+                @if (fieldRef.errors?.['required']) {
+                  Este campo es requerido
                 }
-              }
-            </div>
+              </div>
+            }
+          }
+          
+          <!-- TEXTAREA FIELD -->
+          @else if (field.type === 'textarea') {
+            <textarea
+              [id]="field.name"
+              [name]="field.name"
+              [placeholder]="field.placeholder"
+              [required]="field.required"
+              [minlength]="field.minLength"
+              [maxlength]="field.maxLength"
+              [(ngModel)]="formData[field.name]"
+              class="form-control"
+              rows="4"
+              [class.is-invalid]="fieldRef.invalid && fieldRef.touched"
+              #fieldRef="ngModel"
+            ></textarea>
+
+            @if (fieldRef.invalid && fieldRef.touched) {
+              <div class="text-danger small mt-1">
+                @if (fieldRef.errors?.['required']) {
+                  Este campo es requerido
+                }
+                @if (fieldRef.errors?.['minlength']) {
+                  Mínimo {{ field.minLength }} caracteres
+                }
+                @if (fieldRef.errors?.['maxlength']) {
+                  Máximo {{ field.maxLength }} caracteres
+                }
+              </div>
+            }
+          }
+          
+          <!-- INPUT FIELDS (text, number, email, password, date, datetime-local, etc.) -->
+          @else {
+            <input
+              [id]="field.name"
+              [name]="field.name"
+              [type]="field.type"
+              [placeholder]="field.placeholder"
+              [required]="field.type === 'password' && typeService === 'edit' ? false : field.required"
+              [minlength]="field.minLength"
+              [maxlength]="field.maxLength"
+              [min]="field.min"
+              [max]="field.max"
+              [pattern]="field.pattern"
+              [(ngModel)]="formData[field.name]"
+              class="form-control"
+              [class.is-invalid]="fieldRef.invalid && fieldRef.touched"
+              #fieldRef="ngModel"
+            />
+
+            @if (fieldRef.invalid && fieldRef.touched) {
+              <div class="text-danger small mt-1">
+                @if (fieldRef.errors?.['required']) {
+                  Este campo es requerido
+                }
+                @if (fieldRef.errors?.['email']) {
+                  Ingrese un email válido
+                }
+                @if (fieldRef.errors?.['minlength']) {
+                  Mínimo {{ field.minLength }} caracteres
+                }
+                @if (fieldRef.errors?.['maxlength']) {
+                  Máximo {{ field.maxLength }} caracteres
+                }
+                @if (fieldRef.errors?.['pattern']) {
+                  @if (field.type === 'password') {
+                    La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial
+                  } @else {
+                    Formato inválido
+                  }
+                }
+              </div>
+            }
           }
         </div>
       }

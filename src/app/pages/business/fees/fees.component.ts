@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.component';
 import { Fee } from 'src/app/models/business-models/fee.model';
 import { FeeService } from 'src/app/services/models/business-models/fee.service';
+import { TripService } from 'src/app/services/models/business-models/trip.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
+import { forkJoin } from 'rxjs';
 
 /**
  * FeesComponent
@@ -27,7 +29,7 @@ export class FeesComponent implements OnInit {
    */
   headTable: string[] = [
     'ID',
-    'Viaje ID',
+    'Viaje',
     'Monto',
     'Descripción',
     'Fecha Límite',
@@ -41,10 +43,10 @@ export class FeesComponent implements OnInit {
    */
   itemsData: string[] = [
     'id',
-    'tripId',       // ✅ Cambiado de trip_id a tripId (camelCase)
+    'trip.name',        // Mostrar nombre del viaje en lugar de ID
     'amount',
     'description',
-    'dueDate',      // ✅ Cambiado de due_date a dueDate (camelCase)
+    'dueDate',
     'status',
   ];
 
@@ -55,56 +57,19 @@ export class FeesComponent implements OnInit {
 
   /**
    * Definición de los campos del formulario para el modal CRUD.
+   * Se inicializa vacío y se llena dinámicamente en ngOnInit.
    */
-  fields: FormField[] = [
-    { 
-      name: 'tripId',    // ✅ Cambiado a camelCase
-      label: 'ID del Viaje', 
-      type: 'number', 
-      placeholder: 'Ingrese el ID del viaje',
-      required: true 
-    },
-    { 
-      name: 'amount', 
-      label: 'Monto', 
-      type: 'number', 
-      placeholder: 'Ingrese el monto',
-      required: true,
-      min: 0,
-    },
-    {
-      name: 'description',
-      label: 'Descripción',
-      type: 'textarea',
-      placeholder: 'Detalle de la tarifa (opcional)',
-      required: false,  // ✅ Opcional según el modelo
-      max: 500,
-    },
-    { 
-      name: 'dueDate',   // ✅ Cambiado a camelCase
-      label: 'Fecha Límite de Pago', 
-      type: 'date', 
-      placeholder: 'Seleccione la fecha límite',
-      required: true 
-    },
-    {
-      name: 'status',
-      label: 'Estado',
-      type: 'select',
-      options: [
-        { value: 'pending', text: 'Pendiente' },
-        { value: 'paid', text: 'Pagado' },
-        { value: 'overdue', text: 'Vencido' },
-      ],
-      required: true,
-    },
-  ];
+  fields: FormField[] = [];
 
   /**
-   * Constructor: inicializa el servicio y las funciones CRUD.
+   * Constructor: inicializa los servicios y las funciones CRUD.
    * @param feeService Servicio para gestionar las tarifas
+   * @param tripService Servicio para obtener los viajes
    */
-  constructor(private feeService: FeeService) {
+  constructor(
+    private feeService: FeeService,
+    private tripService: TripService
+  ) {
     this.arrayFunctions = {
       update: (id?: string, fee?: Fee) => this.update(id, fee),
       create: (fee?: Fee) => this.create(fee),
@@ -114,20 +79,92 @@ export class FeesComponent implements OnInit {
   }
 
   /**
-   * Carga inicial de las tarifas al montar el componente.
+   * Carga inicial: obtiene tarifas y viajes.
    */
   ngOnInit(): void {
-    this.loadFees();
+    this.loadInitialData();
   }
 
   /**
-   * Carga la lista de tarifas desde el backend.
+   * Carga todos los datos iniciales necesarios en paralelo.
+   */
+  loadInitialData(): void {
+    forkJoin({
+      fees: this.feeService.getFees(),
+      trips: this.tripService.getTrips()
+    }).subscribe({
+      next: (results: any) => {
+        // Cargar tarifas
+        this.fees = results.fees.data;
+        console.log('Tarifas cargadas:', this.fees.length, 'registros');
+
+        // Construir opciones para el select de viajes
+        const tripOptions = results.trips.data.map((trip: any) => ({
+          value: trip.id,
+          label: `${trip.name} - ${trip.destination} (${trip.startDate ? new Date(trip.startDate).toLocaleDateString() : 'Sin fecha'}) - $${trip.price}`
+        }));
+
+        // Definir los campos del formulario con las opciones cargadas
+        this.fields = [
+          { 
+            name: 'tripId',
+            label: 'Viaje', 
+            type: 'select',
+            placeholder: 'Seleccione un viaje',
+            required: true,
+            options: tripOptions
+          },
+          { 
+            name: 'amount', 
+            label: 'Monto', 
+            type: 'number', 
+            placeholder: 'Ingrese el monto',
+            required: true,
+            min: 0,
+          },
+          {
+            name: 'description',
+            label: 'Descripción',
+            type: 'textarea',
+            placeholder: 'Detalle de la tarifa (opcional)',
+            required: false,
+            maxLength: 500,
+          },
+          { 
+            name: 'dueDate',
+            label: 'Fecha Límite de Pago', 
+            type: 'date', 
+            placeholder: 'Seleccione la fecha límite',
+            required: true 
+          },
+          {
+            name: 'status',
+            label: 'Estado',
+            type: 'select',
+            placeholder: 'Seleccione el estado',
+            options: [
+              { value: 'pending', label: 'Pendiente' },
+              { value: 'paid', label: 'Pagado' },
+              { value: 'overdue', label: 'Vencido' },
+            ],
+            required: true,
+          },
+        ];
+
+        console.log('Campos del formulario configurados:', this.fields);
+      },
+      error: (err) => console.error('Error al cargar datos iniciales', err),
+    });
+  }
+
+  /**
+   * Recarga solo la lista de tarifas.
    */
   loadFees(): void {
     this.feeService.getFees().subscribe({
       next: (res: any) => {
-        this.fees = res.data;  // ✅ Extraer solo el array de data
-        console.log('Tarifas cargadas:', this.fees);
+        this.fees = res.data;
+        console.log('Tarifas actualizadas:', this.fees.length, 'registros');
       },
       error: (err) => console.error('Error al cargar tarifas', err),
     });
@@ -152,7 +189,10 @@ export class FeesComponent implements OnInit {
   update(id?: string, fee?: Fee): void {
     if (id && fee) {
       this.feeService.updateFee(id, fee).subscribe({
-        next: () => this.loadFees(),
+        next: () => {
+          console.log('Tarifa actualizada exitosamente');
+          this.loadFees();
+        },
         error: (err) => console.error('Error al actualizar tarifa', err),
       });
     }
@@ -165,7 +205,10 @@ export class FeesComponent implements OnInit {
   create(fee?: Fee): void {
     if (fee) {
       this.feeService.createFee(fee).subscribe({
-        next: () => this.loadFees(),
+        next: () => {
+          console.log('Tarifa creada exitosamente');
+          this.loadFees();
+        },
         error: (err) => console.error('Error al crear tarifa', err),
       });
     }
@@ -177,7 +220,10 @@ export class FeesComponent implements OnInit {
    */
   delete(id: string): void {
     this.feeService.deleteFee(id).subscribe({
-      next: () => this.loadFees(),
+      next: () => {
+        console.log('Tarifa eliminada exitosamente');
+        this.loadFees();
+      },
       error: (err) => console.error('Error al eliminar tarifa', err),
     });
   }

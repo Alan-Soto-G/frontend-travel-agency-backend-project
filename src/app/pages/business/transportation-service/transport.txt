@@ -1,0 +1,251 @@
+// transportation-service.component.ts
+import { Component, OnInit } from '@angular/core';
+import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.component';
+import { TransportationService } from 'src/app/models/business-models/transportation-service.model';
+import { TransportationServiceService } from 'src/app/services/models/business-models/transportation-service';
+//import { VehicleService } from 'src/app/services/models/business-models/vehicle.service';
+import { JourneyService } from 'src/app/services/models/business-models/journey.service';
+import { FormField } from 'src/app/models/security-models/form-field.component';
+import { forkJoin } from 'rxjs';
+
+/**
+ * TransportationServiceComponent
+ *
+ * Componente de página para la gestión de servicios de transporte.
+ * Muestra una tabla CRUD reutilizable para los servicios de transporte y define los campos y funciones específicas.
+ * Utiliza el servicio TransportationServiceService para operaciones CRUD.
+ */
+@Component({
+  selector: 'app-transportation-service',
+  imports: [TableCrudComponent],
+  templateUrl: './transportation-service.component.html',
+})
+export class TransportationServiceComponent implements OnInit {
+  /**
+   * Lista de servicios de transporte cargados desde el backend.
+   */
+  transportationServices: TransportationService[] = [];
+
+  /**
+   * Encabezados de la tabla.
+   */
+  headTable: string[] = [
+    'ID',
+    'Itinerario',
+    'Vehículo',
+    'Fecha Inicio',
+    'Fecha Fin',
+    'Costo',
+    'Actualizar',
+    'Eliminar'
+  ];
+
+  /**
+   * Campos de los datos a mostrar en la tabla.
+   */
+  itemsData: string[] = [
+    'id',
+    'journey.originMunicipality.name',  // Mostrar nombre del municipio origen
+    'vehicle.licensePlate',              // Mostrar placa del vehículo
+    'startDate',
+    'endDate',
+    'cost'
+  ];
+
+  /**
+   * Diccionario de funciones CRUD para pasar al componente de tabla.
+   */
+  arrayFunctions: Record<string, Function>;
+
+  /**
+   * Definición de los campos del formulario para el modal CRUD.
+   * Se inicializa vacío y se llena dinámicamente en ngOnInit.
+   */
+  fields: FormField[] = [];
+
+  /**
+   * Constructor: inicializa los servicios y las funciones CRUD.
+   * @param transportationServiceService Servicio para gestionar los servicios de transporte
+   * @param vehicleService Servicio para obtener los vehículos
+   * @param journeyService Servicio para obtener los itinerarios
+   */
+  constructor(
+    private transportationServiceService: TransportationServiceService,
+    private vehicleService: VehicleService,
+    private journeyService: JourneyService
+  ) {
+    this.arrayFunctions = {
+      update: (id?: string, transportationService?: TransportationService) => 
+        this.update(id, transportationService),
+      create: (transportationService?: TransportationService) => 
+        this.create(transportationService),
+      findById: (id: string) => this.findById(id),
+      delete: (id: string) => this.delete(id),
+    };
+  }
+
+  /**
+   * Carga inicial: obtiene servicios de transporte, vehículos e itinerarios.
+   */
+  ngOnInit(): void {
+    this.loadInitialData();
+  }
+
+  /**
+   * Carga todos los datos iniciales necesarios en paralelo.
+   */
+  loadInitialData(): void {
+    forkJoin({
+      transportationServices: this.transportationServiceService.getTransportationServices(),
+      vehicles: this.vehicleService.getVehicles(),
+      journeys: this.journeyService.getJourneys()
+    }).subscribe({
+      next: (results: any) => {
+        // Cargar servicios de transporte
+        this.transportationServices = results.transportationServices.data;
+        console.log('Servicios de transporte:', this.transportationServices);
+
+        // Construir opciones para el select de itinerarios
+        const journeyOptions = results.journeys.data.map((journey: any) => ({
+          value: journey.id,
+          label: `${journey.originMunicipality?.name || 'Origen'} → ${journey.destinationMunicipality?.name || 'Destino'} (${journey.distance || 0} km)`
+        }));
+
+        // Construir opciones para el select de vehículos
+        const vehicleOptions = results.vehicles.data.map((vehicle: any) => ({
+          value: vehicle.id,
+          label: `${vehicle.licensePlate} - ${vehicle.brand || ''} ${vehicle.model || ''} (${vehicle.capacity || 0} asientos)`
+        }));
+
+        // Definir los campos del formulario con las opciones cargadas
+        this.fields = [
+          {
+            name: 'journeyId',
+            label: 'Itinerario',
+            type: 'select',
+            placeholder: 'Seleccione un itinerario',
+            required: true,
+            options: journeyOptions
+          },
+          {
+            name: 'vehicleId',
+            label: 'Vehículo',
+            type: 'select',
+            placeholder: 'Seleccione un vehículo',
+            required: true,
+            options: vehicleOptions
+          },
+          {
+            name: 'startDate',
+            label: 'Fecha de Inicio',
+            type: 'datetime-local',
+            placeholder: 'Seleccione la fecha y hora de inicio',
+            required: true,
+          },
+          {
+            name: 'endDate',
+            label: 'Fecha de Fin',
+            type: 'datetime-local',
+            placeholder: 'Seleccione la fecha y hora de fin',
+            required: true,
+          },
+          {
+            name: 'cost',
+            label: 'Costo',
+            type: 'number',
+            placeholder: 'Ingrese el costo del servicio',
+            required: true,
+            min: 0
+          },
+        ];
+
+        console.log('Campos del formulario configurados:', this.fields);
+      },
+      error: (err) => console.error('Error al cargar datos iniciales', err),
+    });
+  }
+
+  /**
+   * Recarga solo la lista de servicios de transporte.
+   */
+  loadTransportationServices(): void {
+    this.transportationServiceService.getTransportationServices().subscribe({
+      next: (res: any) => {
+        this.transportationServices = res.data;
+        console.log('Servicios de transporte actualizados:', this.transportationServices);
+      },
+      error: (err) => console.error('Error al cargar servicios de transporte', err),
+    });
+  }
+
+  /**
+   * Busca un servicio de transporte por ID.
+   * @param id ID del servicio de transporte
+   */
+  findById(id: string): void {
+    this.transportationServiceService.getTransportationServiceById(id).subscribe({
+      next: (data) => console.log('Servicio de transporte encontrado:', data),
+      error: (err) => console.error('Error al buscar servicio de transporte', err),
+    });
+  }
+
+  /**
+   * Actualiza un servicio de transporte.
+   * @param id ID del servicio de transporte
+   * @param transportationService Datos actualizados
+   */
+  update(id?: string, transportationService?: TransportationService): void {
+    if (id && transportationService) {
+      this.transportationServiceService.updateTransportationService(id, transportationService).subscribe({
+        next: () => {
+          console.log('Servicio de transporte actualizado exitosamente');
+          this.loadTransportationServices();
+        },
+        error: (err) => console.error('Error al actualizar servicio de transporte', err),
+      });
+    }
+  }
+
+  /**
+   * Crea un nuevo servicio de transporte.
+   * @param transportationService Datos del nuevo servicio de transporte
+   */
+  create(transportationService?: TransportationService): void {
+    if (transportationService) {
+      this.transportationServiceService.createTransportationService(transportationService).subscribe({
+        next: () => {
+          console.log('Servicio de transporte creado exitosamente');
+          this.loadTransportationServices();
+        },
+        error: (err) => console.error('Error al crear servicio de transporte', err),
+      });
+    }
+  }
+
+  /**
+   * Elimina un servicio de transporte.
+   * @param id ID del servicio de transporte a eliminar
+   */
+  delete(id: string): void {
+    this.transportationServiceService.deleteTransportationService(id).subscribe({
+      next: () => {
+        console.log('Servicio de transporte eliminado exitosamente');
+        this.loadTransportationServices();
+      },
+      error: (err) => console.error('Error al eliminar servicio de transporte', err),
+    });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

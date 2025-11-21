@@ -1,7 +1,7 @@
 // transportation-service.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { catchError, Observable, tap, throwError } from 'rxjs';
 import { TransportationService } from '../../../models/business-models/transportation-service.model';
 import { environment } from 'src/environments/environment';
 
@@ -20,8 +20,20 @@ export class TransportationServiceService {
   }
 
   createTransportationService(transportationService: TransportationService): Observable<TransportationService> {
-
-    return this.http.post<TransportationService>(this.businessApiUrl, transportationService);
+    console.log('📤 Datos enviados al backend:', transportationService); // <-- Log de datos enviados
+    
+    return this.http.post<TransportationService>(this.businessApiUrl, transportationService).pipe(
+      tap(response => {
+        console.log('✅ Respuesta exitosa del backend:', response);
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.log('❌ Error completo:', error);
+        console.log('❌ Errores de validación:', error.error?.errors);
+        console.log('❌ Mensaje de error:', error.error?.message);
+        console.log('❌ Status:', error.status);
+        return throwError(() => error);
+      })
+    );
   }
 
   updateTransportationService(id: string, transportationService: TransportationService): Observable<TransportationService> {

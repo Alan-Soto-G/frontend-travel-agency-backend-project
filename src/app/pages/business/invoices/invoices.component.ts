@@ -2,32 +2,24 @@ import { Component, OnInit } from '@angular/core';
 import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.component';
 import { Invoice } from 'src/app/models/business-models/invoice.model';
 import { InvoiceService } from 'src/app/services/models/business-models/invoice.service';
+import { FeeService } from 'src/app/services/models/business-models/fee.service';
+import { BankCardService } from 'src/app/services/models/business-models/bank-card.service';
+import { TripService } from 'src/app/services/models/business-models/trip.service'; // 👈 Agregar esto
 import { FormField } from 'src/app/models/security-models/form-field.component';
+import { forkJoin } from 'rxjs';
 
-/**
- * InvoicesComponent
- *
- * Componente de página para la gestión de facturas (Invoices).
- * Muestra una tabla CRUD reutilizable para las facturas y define los campos y funciones específicas.
- * Utiliza el servicio InvoiceService para operaciones CRUD.
- */
 @Component({
   selector: 'app-invoices',
   imports: [TableCrudComponent],
   templateUrl: './invoices.component.html',
 })
 export class InvoicesComponent implements OnInit {
-  /**
-   * Lista de facturas cargadas desde el backend.
-   */
   invoices: Invoice[] = [];
-
-  /**
-   * Encabezados de la tabla.
-   */
+  
   headTable: string[] = [
     'ID',
-    'Tarifa ID',
+    'Tarifa',
+    'Tarjeta Bancaria',
     'Número de Factura',
     'Monto Total',
     'Fecha Emisión',
@@ -37,86 +29,30 @@ export class InvoicesComponent implements OnInit {
     'Eliminar',
   ];
 
-  /**
-   * Campos de los datos a mostrar en la tabla.
-   */
   itemsData: string[] = [
     'id',
-    'feeId',           // ✅ Cambiado de fee_id a feeId (camelCase)
-    'invoiceNumber',   // ✅ Cambiado de invoice_number a invoiceNumber
-    'totalAmount',     // ✅ Cambiado de total_amount a totalAmount
-    'issueDate',       // ✅ Cambiado de issue_date a issueDate
-    'paymentDate',     // ✅ Cambiado de payment_date a paymentDate
-    'paymentMethod',   // ✅ Cambiado de payment_method a paymentMethod
+    'fee.trip.name',
+    'bankCard.cardNumber',
+    'invoiceNumber',
+    'totalAmount',
+    'issueDate',
+    'paymentDate',
+    'paymentMethod',
   ];
 
-  /**
-   * Diccionario de funciones CRUD para pasar al componente de tabla.
-   */
   arrayFunctions: Record<string, Function>;
+  fields: FormField[] = [];
 
-  /**
-   * Definición de los campos del formulario para el modal CRUD.
-   */
-  fields: FormField[] = [
-    { 
-      name: 'feeId',           // ✅ Cambiado a camelCase
-      label: 'ID de la Tarifa', 
-      type: 'number', 
-      placeholder: 'Ingrese el ID de la tarifa',
-      required: true 
-    },
-    {
-      name: 'invoiceNumber',   // ✅ Cambiado a camelCase
-      label: 'Número de Factura',
-      type: 'text',
-      placeholder: 'Ingrese el número de factura',
-      required: true,
-      min: 3,
-      max: 255,
-    },
-    { 
-      name: 'totalAmount',     // ✅ Cambiado a camelCase
-      label: 'Monto Total', 
-      type: 'number', 
-      placeholder: 'Ingrese el monto total',
-      required: true 
-    },
-    { 
-      name: 'issueDate',       // ✅ Cambiado a camelCase
-      label: 'Fecha de Emisión', 
-      type: 'date', 
-      placeholder: 'Seleccione la fecha de emisión',
-      required: true 
-    },
-    { 
-      name: 'paymentDate',     // ✅ Cambiado a camelCase
-      label: 'Fecha de Pago', 
-      type: 'date', 
-      placeholder: 'Seleccione la fecha de pago (opcional)',
-      required: false          // ✅ Cambiado a false porque puede ser null
-    },
-    {
-      name: 'paymentMethod',   // ✅ Cambiado a camelCase
-      label: 'Método de Pago',
-      type: 'select',
-      options: [
-        { value: 'cash', text: 'Efectivo' },
-        { value: 'credit_card', text: 'Tarjeta de Crédito' },
-        { value: 'debit_card', text: 'Tarjeta Débito' },
-        { value: 'bank_transfer', text: 'Transferencia Bancaria' },
-        { value: 'paypal', text: 'PayPal' },
-        { value: 'other', text: 'Otro' },
-      ],
-      required: true,
-    },
-  ];
+  // Cache de datos
+  private tripsCache: any[] = [];
+  private bankCardsCache: any[] = [];
 
-  /**
-   * Constructor: inicializa el servicio y las funciones CRUD.
-   * @param invoiceService Servicio para gestionar las facturas
-   */
-  constructor(private invoiceService: InvoiceService) {
+  constructor(
+    private invoiceService: InvoiceService,
+    private feeService: FeeService,
+    private bankCardService: BankCardService,
+    private tripService: TripService // 👈 Agregar esto
+  ) {
     this.arrayFunctions = {
       update: (id?: string, invoice?: Invoice) => this.update(id, invoice),
       create: (invoice?: Invoice) => this.create(invoice),
@@ -125,30 +61,170 @@ export class InvoicesComponent implements OnInit {
     };
   }
 
-  /**
-   * Carga inicial de las facturas al montar el componente.
-   */
   ngOnInit(): void {
-    this.loadInvoices();
+    this.loadInitialData();
   }
 
   /**
-   * Carga la lista de facturas desde el backend.
+   * Carga todos los datos iniciales necesarios en paralelo.
+   */
+  loadInitialData(): void {
+    forkJoin({
+      invoices: this.invoiceService.getInvoices(),
+      fees: this.feeService.getFees(),
+      bankCards: this.bankCardService.getBankCards(),
+      trips: this.tripService.getTrips() // 👈 Cargar trips también
+    }).subscribe({
+      next: (results: any) => {
+        // Guardar en cache
+        this.tripsCache = results.trips.data;
+        this.bankCardsCache = results.bankCards.data;
+
+        // Enriquecer las facturas con las relaciones faltantes
+        this.invoices = results.invoices.data.map((invoice: any) => {
+          // Si fee existe pero no tiene trip, buscarlo
+          if (invoice.fee && !invoice.fee.trip) {
+            const trip = this.tripsCache.find(t => t.id === invoice.fee.tripId);
+            if (trip) {
+              invoice.fee.trip = trip;
+            }
+          }
+
+          // Si no tiene bankCard pero tiene bankCardId, buscarlo
+          if (!invoice.bankCard && invoice.bankCardId) {
+            const bankCard = this.bankCardsCache.find(c => c.id === invoice.bankCardId);
+            if (bankCard) {
+              invoice.bankCard = bankCard;
+            }
+          }
+
+          return invoice;
+        });
+
+        console.log('Facturas cargadas:', this.invoices.length, 'registros');
+
+        // Construir opciones para el select de tarifas
+        const feeOptions = results.fees.data.map((fee: any) => {
+          // Enriquecer fee con trip si no lo tiene
+          if (!fee.trip && fee.tripId) {
+            fee.trip = this.tripsCache.find(t => t.id === fee.tripId);
+          }
+          
+          return {
+            value: fee.id,
+            label: `${fee.trip?.name || 'Viaje sin nombre'} - $${fee.amount} - ${fee.status === 'paid' ? '✅ Pagado' : fee.status === 'pending' ? '⏳ Pendiente' : '❌ Vencido'} (ID: ${fee.id})`
+          };
+        });
+
+        // Construir opciones para el select de tarjetas bancarias
+        const bankCardOptions = results.bankCards.data.map((card: any) => ({
+          value: card.id,
+          label: `💳 ${card.cardNumber} - ${card.cardType} - ${card.bankName || 'Banco no especificado'}`
+        }));
+
+        // Definir los campos del formulario con las opciones cargadas
+        this.fields = [
+          { 
+            name: 'feeId',
+            label: 'Tarifa', 
+            type: 'select',
+            placeholder: 'Seleccione una tarifa',
+            required: true,
+            options: feeOptions
+          },
+          { 
+            name: 'bankCardId',
+            label: 'Tarjeta Bancaria', 
+            type: 'select',
+            placeholder: 'Seleccione una tarjeta (opcional)',
+            required: false,
+            options: bankCardOptions
+          },
+          {
+            name: 'invoiceNumber',
+            label: 'Número de Factura',
+            type: 'text',
+            placeholder: 'Ingrese el número de factura (ej: INV-2025-001)',
+            required: true,
+            minLength: 3,
+            maxLength: 255,
+          },
+          { 
+            name: 'totalAmount',
+            label: 'Monto Total', 
+            type: 'number', 
+            placeholder: 'Ingrese el monto total',
+            required: true,
+            min: 0
+          },
+          { 
+            name: 'issueDate',
+            label: 'Fecha de Emisión', 
+            type: 'date', 
+            placeholder: 'Seleccione la fecha de emisión',
+            required: true 
+          },
+          { 
+            name: 'paymentDate',
+            label: 'Fecha de Pago', 
+            type: 'date', 
+            placeholder: 'Seleccione la fecha de pago (opcional)',
+            required: false
+          },
+          {
+            name: 'paymentMethod',
+            label: 'Método de Pago',
+            type: 'select',
+            placeholder: 'Seleccione el método de pago',
+            options: [
+              { value: 'cash', label: '💵 Efectivo' },
+              { value: 'credit_card', label: '💳 Tarjeta de Crédito' },
+              { value: 'debit_card', label: '💳 Tarjeta Débito' },
+              { value: 'bank_transfer', label: '🏦 Transferencia Bancaria' },
+              { value: 'paypal', label: '🅿️ PayPal' },
+              { value: 'other', label: '📝 Otro' },
+            ],
+            required: true,
+          },
+        ];
+
+        console.log('Campos del formulario configurados:', this.fields);
+      },
+      error: (err) => console.error('Error al cargar datos iniciales', err),
+    });
+  }
+
+  /**
+   * Recarga solo la lista de facturas (con enriquecimiento de datos).
    */
   loadInvoices(): void {
     this.invoiceService.getInvoices().subscribe({
       next: (res: any) => {
-        this.invoices = res.data;  // ✅ Extraer solo el array de data
-        console.log('Facturas cargadas:', this.invoices);
+        // Enriquecer las facturas con las relaciones del cache
+        this.invoices = res.data.map((invoice: any) => {
+          if (invoice.fee && !invoice.fee.trip && invoice.fee.tripId) {
+            const trip = this.tripsCache.find(t => t.id === invoice.fee.tripId);
+            if (trip) {
+              invoice.fee.trip = trip;
+            }
+          }
+
+          if (!invoice.bankCard && invoice.bankCardId) {
+            const bankCard = this.bankCardsCache.find(c => c.id === invoice.bankCardId);
+            if (bankCard) {
+              invoice.bankCard = bankCard;
+            }
+          }
+
+          return invoice;
+        });
+        
+        console.log('Facturas actualizadas:', this.invoices.length, 'registros');
       },
       error: (err) => console.error('Error al cargar facturas', err),
     });
   }
 
-  /**
-   * Busca una factura por ID.
-   * @param id ID de la factura
-   */
   findById(id: string): void {
     this.invoiceService.getInvoiceById(id).subscribe({
       next: (data) => console.log('Factura encontrada:', data),
@@ -156,40 +232,36 @@ export class InvoicesComponent implements OnInit {
     });
   }
 
-  /**
-   * Actualiza una factura.
-   * @param id ID de la factura
-   * @param invoice Datos actualizados
-   */
   update(id?: string, invoice?: Invoice): void {
     if (id && invoice) {
       this.invoiceService.updateInvoice(id, invoice).subscribe({
-        next: () => this.loadInvoices(),
+        next: () => {
+          console.log('Factura actualizada exitosamente');
+          this.loadInvoices();
+        },
         error: (err) => console.error('Error al actualizar factura', err),
       });
     }
   }
 
-  /**
-   * Crea una nueva factura.
-   * @param invoice Datos de la nueva factura
-   */
   create(invoice?: Invoice): void {
     if (invoice) {
       this.invoiceService.createInvoice(invoice).subscribe({
-        next: () => this.loadInvoices(),
+        next: () => {
+          console.log('Factura creada exitosamente');
+          this.loadInvoices();
+        },
         error: (err) => console.error('Error al crear factura', err),
       });
     }
   }
 
-  /**
-   * Elimina una factura.
-   * @param id ID de la factura a eliminar
-   */
   delete(id: string): void {
     this.invoiceService.deleteInvoice(id).subscribe({
-      next: () => this.loadInvoices(),
+      next: () => {
+        console.log('Factura eliminada exitosamente');
+        this.loadInvoices();
+      },
       error: (err) => console.error('Error al eliminar factura', err),
     });
   }

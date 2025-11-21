@@ -105,13 +105,13 @@ export class TouristActivitiesComponent implements OnInit {
       placeholder: 'Seleccione la categoría',
       required: false,
       options: [
-        { value: 'cultural', text: 'Cultural' },
-        { value: 'adventure', text: 'Aventura' },
-        { value: 'gastronomic', text: 'Gastronómica' },
-        { value: 'recreational', text: 'Recreativa' },
-        { value: 'ecological', text: 'Ecológica' },
-        { value: 'aquatic', text: 'Acuática' },
-        { value: 'other', text: 'Otra' }
+{ value: 'cultural', label: 'Cultural' },
+{ value: 'adventure', label: 'Aventura' },
+{ value: 'gastronomic', label: 'Gastronómica' },
+{ value: 'recreational', label: 'Recreativa' },
+{ value: 'ecological', label: 'Ecológica' },
+{ value: 'aquatic', label: 'Acuática' },
+{ value: 'other', label: 'Otra' }
       ]
     },
   ];

@@ -49,11 +49,11 @@ export class PermissionsComponent implements OnInit {
       placeholder: 'Seleccione el método HTTP',
       required: true,
       options: [
-        { value: 'GET', text: 'GET' },
-        { value: 'POST', text: 'POST' },
-        { value: 'PUT', text: 'PUT' },
-        { value: 'DELETE', text: 'DELETE' },
-        { value: 'PATCH', text: 'PATCH' }
+  { value: 'GET', label: 'GET' },
+  { value: 'POST', label: 'POST' },
+  { value: 'PUT', label: 'PUT' },
+  { value: 'DELETE', label: 'DELETE' },
+  { value: 'PATCH', label: 'PATCH' }
       ]
     },
     {

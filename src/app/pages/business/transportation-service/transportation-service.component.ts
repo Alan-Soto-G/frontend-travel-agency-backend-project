@@ -28,7 +28,7 @@ export class TransportationServiceComponent implements OnInit {
    */
   headTable: string[] = [
     'ID',
-    'ID Viaje',
+    'ID itinerario',
     'ID Vehículo',
     'Fecha Inicio',
     'Fecha Fin',
@@ -60,7 +60,7 @@ export class TransportationServiceComponent implements OnInit {
   fields: FormField[] = [
     {
       name: 'journeyId',
-      label: 'ID del Viaje',
+      label: 'ID del Itinerario',
       type: 'number',
       placeholder: 'Ingrese el ID del viaje',
       required: true,
@@ -179,4 +179,7 @@ export class TransportationServiceComponent implements OnInit {
     });
   }
 }
+
+
+
 
