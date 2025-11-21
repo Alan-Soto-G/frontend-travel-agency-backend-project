@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.component';
 import { Journey } from 'src/app/models/business-models/journey.model';
 import { JourneyService } from 'src/app/services/models/business-models/journey.service';
+import { MunicipalityService } from 'src/app/services/models/business-models/municipality.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
+import { forkJoin } from 'rxjs';
 
 /**
  * JourneysComponent
@@ -28,8 +30,8 @@ export class JourneysComponent implements OnInit {
    */
   headTable: string[] = [
     'ID',
-    'Municipio Origen ID',
-    'Municipio Destino ID',
+    'Municipio Origen',
+    'Municipio Destino',
     'Distancia (km)',
     'Actualizar',
     'Eliminar',
@@ -40,8 +42,8 @@ export class JourneysComponent implements OnInit {
    */
   itemsData: string[] = [
     'id',
-    'originMunicipalityId',
-    'destinationMunicipalityId',
+    'originMunicipalityName',
+    'destinationMunicipalityName',
     'distance',
   ];
 
@@ -53,37 +55,22 @@ export class JourneysComponent implements OnInit {
   /**
    * Definición de los campos del formulario para el modal CRUD.
    */
-  fields: FormField[] = [
-    {
-      name: 'originMunicipalityId',
-      label: 'Municipio de Origen ID',
-      type: 'number',
-      placeholder: 'Ingrese el ID del municipio de origen',
-      required: true,
-    },
-    {
-      name: 'destinationMunicipalityId',
-      label: 'Municipio de Destino ID',
-      type: 'number',
-      placeholder: 'Ingrese el ID del municipio de destino',
-      required: true,
-    },
-    {
-      name: 'distance',
-      label: 'Distancia (km)',
-      type: 'number',
-      placeholder: 'Ingrese la distancia en kilómetros (0-50000)',
-      required: false,
-      min: 0,
-      max: 50000,
-    },
-  ];
+  fields: FormField[] = [];
 
   /**
-   * Constructor: inicializa el servicio y las funciones CRUD.
-   * @param journeyService Servicio para gestionar los trayectos
+   * Cache de datos relacionados
    */
-  constructor(private journeyService: JourneyService) {
+  private municipalitiesCache: any[] = [];
+
+  /**
+   * Constructor: inicializa los servicios y las funciones CRUD.
+   * @param journeyService Servicio para gestionar los trayectos
+   * @param municipalityService Servicio para obtener los municipios
+   */
+  constructor(
+    private journeyService: JourneyService,
+    private municipalityService: MunicipalityService
+  ) {
     this.arrayFunctions = {
       update: (id?: string, journey?: Journey) => this.update(id, journey),
       create: (journey?: Journey) => this.create(journey),
@@ -96,17 +83,123 @@ export class JourneysComponent implements OnInit {
    * Carga inicial de los trayectos al montar el componente.
    */
   ngOnInit(): void {
-    this.loadJourneys();
+    this.loadInitialData();
   }
 
   /**
-   * Carga la lista de trayectos desde el backend.
+   * Carga todos los datos iniciales necesarios en paralelo.
+   */
+  loadInitialData(): void {
+    forkJoin({
+      journeys: this.journeyService.getJourneys(),
+      municipalities: this.municipalityService.getMunicipalities()
+    }).subscribe({
+      next: (results: any) => {
+        // Guardar en cache
+        this.municipalitiesCache = results.municipalities?.data || results.municipalities || [];
+
+        // Crear mapa para búsqueda rápida
+        const municipalitiesMap = new Map(
+          this.municipalitiesCache.map((municipality: any) => [
+            municipality._id || municipality.id, 
+            municipality
+          ])
+        );
+
+        // Enriquecer trayectos con nombres de municipios
+        const journeysData = results.journeys?.data || results.journeys || [];
+        this.journeys = journeysData.map((journey: any) => {
+          const originMunicipality = municipalitiesMap.get(journey.originMunicipalityId);
+          const destinationMunicipality = municipalitiesMap.get(journey.destinationMunicipalityId);
+
+          return {
+            ...journey,
+            id: journey._id || journey.id,
+            originMunicipalityName: originMunicipality 
+              ? `${originMunicipality.name} (${originMunicipality.department})`
+              : 'Sin origen',
+            destinationMunicipalityName: destinationMunicipality 
+              ? `${destinationMunicipality.name} (${destinationMunicipality.department})`
+              : 'Sin destino'
+          };
+        });
+
+        console.log('Trayectos cargados:', this.journeys.length, 'registros');
+
+        // Construir opciones para el select de municipios
+        const municipalityOptions = this.municipalitiesCache.map((municipality: any) => ({
+          value: municipality._id || municipality.id,
+          label: `📍 ${municipality.name} - ${municipality.department} (Código: ${municipality.code})`
+        }));
+
+        // Definir los campos del formulario con las opciones cargadas
+        this.fields = [
+          {
+            name: 'originMunicipalityId',
+            label: 'Municipio de Origen',
+            type: 'select',
+            placeholder: 'Seleccione el municipio de origen',
+            required: true,
+            options: municipalityOptions
+          },
+          {
+            name: 'destinationMunicipalityId',
+            label: 'Municipio de Destino',
+            type: 'select',
+            placeholder: 'Seleccione el municipio de destino',
+            required: true,
+            options: municipalityOptions
+          },
+          {
+            name: 'distance',
+            label: 'Distancia (km)',
+            type: 'number',
+            placeholder: 'Ingrese la distancia en kilómetros',
+            required: true,
+            min: 0,
+            max: 50000,
+          },
+        ];
+
+        console.log('Campos del formulario configurados:', this.fields);
+      },
+      error: (err) => console.error('Error al cargar datos iniciales', err),
+    });
+  }
+
+  /**
+   * Recarga solo la lista de trayectos (con enriquecimiento de datos).
    */
   loadJourneys(): void {
     this.journeyService.getJourneys().subscribe({
       next: (res: any) => {
-        this.journeys = res.data;
-        console.log('Trayectos cargados:', this.journeys.length, 'registros');
+        // Crear mapa para búsqueda rápida
+        const municipalitiesMap = new Map(
+          this.municipalitiesCache.map((municipality: any) => [
+            municipality._id || municipality.id, 
+            municipality
+          ])
+        );
+
+        // Enriquecer trayectos con nombres de municipios
+        const journeysData = res.data || res || [];
+        this.journeys = journeysData.map((journey: any) => {
+          const originMunicipality = municipalitiesMap.get(journey.originMunicipalityId);
+          const destinationMunicipality = municipalitiesMap.get(journey.destinationMunicipalityId);
+
+          return {
+            ...journey,
+            id: journey._id || journey.id,
+            originMunicipalityName: originMunicipality 
+              ? `${originMunicipality.name} (${originMunicipality.department})`
+              : 'Sin origen',
+            destinationMunicipalityName: destinationMunicipality 
+              ? `${destinationMunicipality.name} (${destinationMunicipality.department})`
+              : 'Sin destino'
+          };
+        });
+
+        console.log('Trayectos actualizados:', this.journeys.length, 'registros');
       },
       error: (err) => console.error('Error al cargar trayectos', err),
     });
@@ -131,7 +224,10 @@ export class JourneysComponent implements OnInit {
   update(id?: string, journey?: Journey): void {
     if (id && journey) {
       this.journeyService.updateJourney(id, journey).subscribe({
-        next: () => this.loadJourneys(),
+        next: () => {
+          console.log('Trayecto actualizado exitosamente');
+          this.loadJourneys();
+        },
         error: (err) => console.error('Error al actualizar trayecto', err),
       });
     }
@@ -144,7 +240,10 @@ export class JourneysComponent implements OnInit {
   create(journey?: Journey): void {
     if (journey) {
       this.journeyService.createJourney(journey).subscribe({
-        next: () => this.loadJourneys(),
+        next: () => {
+          console.log('Trayecto creado exitosamente');
+          this.loadJourneys();
+        },
         error: (err) => console.error('Error al crear trayecto', err),
       });
     }
@@ -156,9 +255,11 @@ export class JourneysComponent implements OnInit {
    */
   delete(id: string): void {
     this.journeyService.deleteJourney(id).subscribe({
-      next: () => this.loadJourneys(),
+      next: () => {
+        console.log('Trayecto eliminado exitosamente');
+        this.loadJourneys();
+      },
       error: (err) => console.error('Error al eliminar trayecto', err),
     });
   }
 }
-

@@ -3,7 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.component';
 import { TransportationService } from 'src/app/models/business-models/transportation-service.model';
 import { TransportationServiceService } from 'src/app/services/models/business-models/transportation-service';
+import { VehicleService } from 'src/app/services/models/business-models/vehicle.service';
+import { JourneyService } from 'src/app/services/models/business-models/journey.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
+import { forkJoin } from 'rxjs';
 
 /**
  * TransportationServiceComponent
@@ -28,8 +31,9 @@ export class TransportationServiceComponent implements OnInit {
    */
   headTable: string[] = [
     'ID',
-    'ID itinerario',
-    'ID Vehículo',
+    'Origen',
+    'Destino',
+    'Vehículo',
     'Fecha Inicio',
     'Fecha Fin',
     'Costo',
@@ -37,13 +41,11 @@ export class TransportationServiceComponent implements OnInit {
     'Eliminar'
   ];
 
-  /**
-   * Campos de los datos a mostrar en la tabla.
-   */
   itemsData: string[] = [
     'id',
-    'journeyId',
-    'vehicleId',
+    'journey.originMunicipality.name',
+    'journey.destinationMunicipality.name',
+    'vehicle.licensePlate',
     'startDate',
     'endDate',
     'cost'
@@ -56,50 +58,21 @@ export class TransportationServiceComponent implements OnInit {
 
   /**
    * Definición de los campos del formulario para el modal CRUD.
+   * Se inicializa vacío y se llena dinámicamente en ngOnInit.
    */
-  fields: FormField[] = [
-    {
-      name: 'journeyId',
-      label: 'ID del Itinerario',
-      type: 'number',
-      placeholder: 'Ingrese el ID del viaje',
-      required: true,
-    },
-    {
-      name: 'vehicleId',
-      label: 'ID del Vehículo',
-      type: 'number',
-      placeholder: 'Ingrese el ID del vehículo',
-      required: true,
-    },
-    {
-      name: 'startDate',
-      label: 'Fecha de Inicio',
-      type: 'datetime-local',
-      placeholder: 'Seleccione la fecha y hora de inicio',
-      required: true,
-    },
-    {
-      name: 'endDate',
-      label: 'Fecha de Fin',
-      type: 'datetime-local',
-      placeholder: 'Seleccione la fecha y hora de fin',
-      required: true,
-    },
-    {
-      name: 'cost',
-      label: 'Costo',
-      type: 'number',
-      placeholder: 'Ingrese el costo del servicio',
-      required: true,
-    },
-  ];
+  fields: FormField[] = [];
 
   /**
-   * Constructor: inicializa el servicio y las funciones CRUD.
+   * Constructor: inicializa los servicios y las funciones CRUD.
    * @param transportationServiceService Servicio para gestionar los servicios de transporte
+   * @param vehicleService Servicio para obtener los vehículos
+   * @param journeyService Servicio para obtener los itinerarios
    */
-  constructor(private transportationServiceService: TransportationServiceService) {
+  constructor(
+    private transportationServiceService: TransportationServiceService,
+    private vehicleService: VehicleService,
+    private journeyService: JourneyService
+  ) {
     this.arrayFunctions = {
       update: (id?: string, transportationService?: TransportationService) => 
         this.update(id, transportationService),
@@ -111,20 +84,94 @@ export class TransportationServiceComponent implements OnInit {
   }
 
   /**
-   * Carga inicial de los servicios de transporte al montar el componente.
+   * Carga inicial: obtiene servicios de transporte, vehículos e itinerarios.
    */
   ngOnInit(): void {
-    this.loadTransportationServices();
+    this.loadInitialData();
   }
 
   /**
-   * Carga la lista de servicios de transporte desde el backend.
+   * Carga todos los datos iniciales necesarios en paralelo.
+   */
+  loadInitialData(): void {
+    forkJoin({
+      transportationServices: this.transportationServiceService.getTransportationServices(),
+      vehicles: this.vehicleService.getVehicles(),
+      journeys: this.journeyService.getJourneys()
+    }).subscribe({
+      next: (results: any) => {
+        // Cargar servicios de transporte
+        this.transportationServices = results.transportationServices.data;
+        console.log('Servicios de transporte:', this.transportationServices);
+
+        // Construir opciones para el select de itinerarios
+        const journeyOptions = results.journeys.data.map((journey: any) => ({
+          value: journey.id,
+          label: `${journey.originMunicipality?.name || 'Origen'} → ${journey.destinationMunicipality?.name || 'Destino'} (${journey.distance || 0} km)`
+        }));
+
+        // Construir opciones para el select de vehículos
+        const vehicleOptions = results.vehicles.data.map((vehicle: any) => ({
+          value: vehicle.id,
+          label: `${vehicle.licensePlate} - ${vehicle.brand || ''} ${vehicle.model || ''} (${vehicle.capacity || 0} asientos)`
+        }));
+
+        // Definir los campos del formulario con las opciones cargadas
+        this.fields = [
+          {
+            name: 'journeyId',
+            label: 'Itinerario',
+            type: 'select',
+            placeholder: 'Seleccione un itinerario',
+            required: true,
+            options: journeyOptions
+          },
+          {
+            name: 'vehicleId',
+            label: 'Vehículo',
+            type: 'select',
+            placeholder: 'Seleccione un vehículo',
+            required: true,
+            options: vehicleOptions
+          },
+          {
+            name: 'startDate',
+            label: 'Fecha de Inicio',
+            type: 'datetime-local',
+            placeholder: 'Seleccione la fecha y hora de inicio',
+            required: true,
+          },
+          {
+            name: 'endDate',
+            label: 'Fecha de Fin',
+            type: 'datetime-local',
+            placeholder: 'Seleccione la fecha y hora de fin',
+            required: true,
+          },
+          {
+            name: 'cost',
+            label: 'Costo',
+            type: 'number',
+            placeholder: 'Ingrese el costo del servicio',
+            required: true,
+            min: 0
+          },
+        ];
+
+        console.log('Campos del formulario configurados:', this.fields);
+      },
+      error: (err) => console.error('Error al cargar datos iniciales', err),
+    });
+  }
+
+  /**
+   * Recarga solo la lista de servicios de transporte.
    */
   loadTransportationServices(): void {
     this.transportationServiceService.getTransportationServices().subscribe({
       next: (res: any) => {
-        this.transportationServices = res.data;  // ✅ Solo el array de servicios
-        console.log(this.transportationServices); // Verifica que se cargue correctamente
+        this.transportationServices = res.data;
+        console.log('Servicios de transporte actualizados:', this.transportationServices);
       },
       error: (err) => console.error('Error al cargar servicios de transporte', err),
     });
@@ -149,7 +196,10 @@ export class TransportationServiceComponent implements OnInit {
   update(id?: string, transportationService?: TransportationService): void {
     if (id && transportationService) {
       this.transportationServiceService.updateTransportationService(id, transportationService).subscribe({
-        next: () => this.loadTransportationServices(),
+        next: () => {
+          console.log('Servicio de transporte actualizado exitosamente');
+          this.loadTransportationServices();
+        },
         error: (err) => console.error('Error al actualizar servicio de transporte', err),
       });
     }
@@ -162,7 +212,10 @@ export class TransportationServiceComponent implements OnInit {
   create(transportationService?: TransportationService): void {
     if (transportationService) {
       this.transportationServiceService.createTransportationService(transportationService).subscribe({
-        next: () => this.loadTransportationServices(),
+        next: () => {
+          console.log('Servicio de transporte creado exitosamente');
+          this.loadTransportationServices();
+        },
         error: (err) => console.error('Error al crear servicio de transporte', err),
       });
     }
@@ -174,11 +227,23 @@ export class TransportationServiceComponent implements OnInit {
    */
   delete(id: string): void {
     this.transportationServiceService.deleteTransportationService(id).subscribe({
-      next: () => this.loadTransportationServices(),
+      next: () => {
+        console.log('Servicio de transporte eliminado exitosamente');
+        this.loadTransportationServices();
+      },
       error: (err) => console.error('Error al eliminar servicio de transporte', err),
     });
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 

@@ -3,6 +3,7 @@ import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.com
 import { Client } from 'src/app/models/business-models/client.model';
 import { ClientService } from 'src/app/services/models/business-models/client.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
+import { forkJoin } from 'rxjs';
 
 /**
  * ClientsComponent
@@ -57,61 +58,7 @@ export class ClientsComponent implements OnInit {
   /**
    * Definición de los campos del formulario para el modal CRUD.
    */
-  fields: FormField[] = [
-    {
-      name: 'userId',
-      label: 'Usuario ID',
-      type: 'text',
-      placeholder: 'Ingrese el ID del usuario',
-      required: true,
-      min: 1,
-      max: 100,
-    },
-    {
-      name: 'emergencyContactName',
-      label: 'Nombre de Contacto de Emergencia',
-      type: 'text',
-      placeholder: 'Ingrese el nombre del contacto de emergencia',
-      required: false,
-      min: 3,
-      max: 100,
-    },
-    {
-      name: 'emergencyContactPhone',
-      label: 'Teléfono de Emergencia',
-      type: 'text',
-      placeholder: 'Ingrese el teléfono de emergencia',
-      required: false,
-      min: 7,
-      max: 20
-    },
-    {
-      name: 'allergies',
-      label: 'Alergias',
-      type: 'text',
-      placeholder: 'Ingrese las alergias del cliente',
-      required: false
-    },
-    {
-      name: 'loyaltyPoints',
-      label: 'Puntos de Lealtad',
-      type: 'number',
-      placeholder: 'Ingrese los puntos de lealtad',
-      required: false,
-      min: 0,
-    },
-    {
-      name: 'isVip',
-      label: '¿Es VIP?',
-      type: 'select',
-      placeholder: 'Seleccione si es VIP',
-      required: false,
-      options: [
-        { value: 'true', text: 'True' },
-        { value: 'false', text: 'False' }
-      ]
-    },
-  ];
+  fields: FormField[] = [];
 
   /**
    * Constructor: inicializa el servicio y las funciones CRUD.
@@ -130,17 +77,93 @@ export class ClientsComponent implements OnInit {
    * Carga inicial de los clientes al montar el componente.
    */
   ngOnInit(): void {
-    this.loadClients();
+    this.loadInitialData();
   }
 
   /**
-   * Carga la lista de clientes desde el backend.
+   * Carga todos los datos iniciales necesarios en paralelo.
+   */
+  loadInitialData(): void {
+    forkJoin({
+      clients: this.clientService.getClients()
+    }).subscribe({
+      next: (results: any) => {
+        this.clients = results.clients.data;
+        
+        console.log('Clientes cargados:', this.clients.length, 'registros');
+
+        // Definir los campos del formulario
+        this.fields = [
+          {
+            name: 'userId',
+            label: 'Usuario ID',
+            type: 'text',
+            placeholder: 'Ingrese el ID del usuario',
+            required: true,
+            minLength: 1,
+            maxLength: 100,
+          },
+          {
+            name: 'emergencyContactName',
+            label: 'Nombre de Contacto de Emergencia',
+            type: 'text',
+            placeholder: 'Ingrese el nombre del contacto de emergencia',
+            required: false,
+            minLength: 3,
+            maxLength: 100,
+          },
+          {
+            name: 'emergencyContactPhone',
+            label: 'Teléfono de Emergencia',
+            type: 'text',
+            placeholder: 'Ingrese el teléfono de emergencia',
+            required: false,
+            minLength: 7,
+            maxLength: 20
+          },
+          {
+            name: 'allergies',
+            label: 'Alergias',
+            type: 'text',
+            placeholder: 'Ingrese las alergias del cliente (opcional)',
+            required: false,
+            maxLength: 500
+          },
+          {
+            name: 'loyaltyPoints',
+            label: 'Puntos de Lealtad',
+            type: 'number',
+            placeholder: 'Ingrese los puntos de lealtad',
+            required: false,
+            min: 0,
+          },
+          {
+            name: 'isVip',
+            label: '¿Es VIP?',
+            type: 'select',
+            placeholder: 'Seleccione si es VIP',
+            required: false,
+            options: [
+              { value: true, label: '⭐ Sí' },
+              { value: false, label: '👤 No' }
+            ]
+          },
+        ];
+
+        console.log('Campos del formulario configurados:', this.fields);
+      },
+      error: (err) => console.error('Error al cargar datos iniciales', err),
+    });
+  }
+
+  /**
+   * Recarga solo la lista de clientes.
    */
   loadClients(): void {
     this.clientService.getClients().subscribe({
       next: (res: any) => {
         this.clients = res.data;
-        console.log('Clientes cargados:', this.clients.length, 'registros');
+        console.log('Clientes actualizados:', this.clients.length, 'registros');
       },
       error: (err) => console.error('Error al cargar clientes', err),
     });
@@ -165,7 +188,10 @@ export class ClientsComponent implements OnInit {
   update(id?: string, client?: Client): void {
     if (id && client) {
       this.clientService.updateClient(id, client).subscribe({
-        next: () => this.loadClients(),
+        next: () => {
+          console.log('Cliente actualizado exitosamente');
+          this.loadClients();
+        },
         error: (err) => console.error('Error al actualizar cliente', err),
       });
     }
@@ -178,7 +204,10 @@ export class ClientsComponent implements OnInit {
   create(client?: Client): void {
     if (client) {
       this.clientService.createClient(client).subscribe({
-        next: () => this.loadClients(),
+        next: () => {
+          console.log('Cliente creado exitosamente');
+          this.loadClients();
+        },
         error: (err) => console.error('Error al crear cliente', err),
       });
     }
@@ -190,10 +219,11 @@ export class ClientsComponent implements OnInit {
    */
   delete(id: string): void {
     this.clientService.deleteClient(id).subscribe({
-      next: () => this.loadClients(),
+      next: () => {
+        console.log('Cliente eliminado exitosamente');
+        this.loadClients();
+      },
       error: (err) => console.error('Error al eliminar cliente', err),
     });
   }
 }
-
-

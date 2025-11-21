@@ -2,7 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.component';
 import { BankCard } from 'src/app/models/business-models/bank-card.model';
 import { BankCardService } from 'src/app/services/models/business-models/bank-card.service';
+import { ClientService } from 'src/app/services/models/business-models/client.service';
+import { UserService } from 'src/app/services/models/security-models/user.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
+import { forkJoin } from 'rxjs';
 
 /**
  * BankCardsComponent
@@ -29,13 +32,13 @@ export class BankCardsComponent implements OnInit {
 
   /**
    * Encabezados de la tabla.
-   * ⚠️ NOTA: Considera ocultar CVV de la tabla por seguridad
+   * ⚠️ NOTA: CVV removido de la tabla por seguridad
    */
   headTable: string[] = [
     'ID',
-    'Cliente ID',
+    'Cliente',
+    'Email/Usuario',
     'Número de Tarjeta',
-    'CVV',  // ⚠️ Considera remover esto por seguridad
     'Expiración',
     'Titular',
     'Actualizar',
@@ -44,15 +47,15 @@ export class BankCardsComponent implements OnInit {
 
   /**
    * Campos de los datos a mostrar en la tabla.
-   * ⚠️ RECOMENDACIÓN: Usa un pipe para enmascarar cardNumber (mostrar solo últimos 4 dígitos)
+   * ⚠️ RECOMENDACIÓN: Implementa un pipe para enmascarar cardNumber (mostrar solo últimos 4 dígitos)
    */
   itemsData: string[] = [
     'id',
-    'clientId',         // ✅ Cambiado de client_id a clientId (camelCase)
-    'cardNumber',       // ✅ Cambiado de card_number a cardNumber
-    'cvv',              // ⚠️ Considera remover por seguridad
-    'expirationDate',   // ✅ Cambiado de expiration_date a expirationDate
-    'cardHolderName',   // ✅ Cambiado de card_holder_name a cardHolderName
+    'clientName',           // Mostrar nombre del cliente
+    'clientEmail',          // Mostrar email del usuario
+    'cardNumber',           // TODO: Implementar pipe para enmascarar (****1234)
+    'expirationDate',
+    'cardHolderName',
   ];
 
   /**
@@ -62,56 +65,27 @@ export class BankCardsComponent implements OnInit {
 
   /**
    * Definición de los campos del formulario para el modal CRUD.
+   * Se inicializa vacío y se llena dinámicamente en ngOnInit.
    */
-  fields: FormField[] = [
-    { 
-      name: 'clientId',    // ✅ Cambiado a camelCase
-      label: 'Cliente ID', 
-      type: 'number', 
-      placeholder: 'Ingrese el ID del cliente',
-      required: true 
-    },
-    {
-      name: 'cardNumber',  // ✅ Cambiado a camelCase
-      label: 'Número de Tarjeta',
-      type: 'text',
-      placeholder: 'Ingrese el número de tarjeta (13-19 dígitos)',
-      required: true,
-      min: 13,           // ✅ Cambiado a 13 (min para tarjetas)
-      max: 19,           // ✅ Cambiado a 19 (max para tarjetas)
-    },
-    { 
-      name: 'cvv', 
-      label: 'CVV', 
-      type: 'password',  // ✅ Cambiado a password para mayor seguridad
-      placeholder: 'Ingrese el CVV (3-4 dígitos)',
-      required: true, 
-      min: 3, 
-      max: 4 
-    },
-    { 
-      name: 'expirationDate',  // ✅ Cambiado a camelCase
-      label: 'Fecha de Expiración', 
-      type: 'date', 
-      placeholder: 'Seleccione la fecha de expiración',
-      required: true 
-    },
-    { 
-      name: 'cardHolderName',  // ✅ Cambiado a camelCase
-      label: 'Nombre del Titular', 
-      type: 'text', 
-      placeholder: 'Ingrese el nombre del titular',
-      required: true, 
-      min: 3,
-      max: 255,
-    },
-  ];
+  fields: FormField[] = [];
 
   /**
-   * Constructor: inicializa el servicio y las funciones CRUD.
-   * @param bankCardService Servicio para gestionar las tarjetas bancarias
+   * Cache de datos relacionados
    */
-  constructor(private bankCardService: BankCardService) {
+  private usersCache: any[] = [];
+  private clientsCache: any[] = [];
+
+  /**
+   * Constructor: inicializa los servicios y las funciones CRUD.
+   * @param bankCardService Servicio para gestionar las tarjetas bancarias
+   * @param clientService Servicio para obtener los clientes
+   * @param userService Servicio para obtener los usuarios
+   */
+  constructor(
+    private bankCardService: BankCardService,
+    private clientService: ClientService,
+    private userService: UserService
+  ) {
     this.arrayFunctions = {
       update: (id?: string, card?: BankCard) => this.update(id, card),
       create: (card?: BankCard) => this.create(card),
@@ -121,21 +95,155 @@ export class BankCardsComponent implements OnInit {
   }
 
   /**
-   * Carga inicial de las tarjetas al montar el componente.
+   * Carga inicial: obtiene tarjetas bancarias, clientes y usuarios.
    */
   ngOnInit(): void {
-    this.loadCards();
+    this.loadInitialData();
   }
 
   /**
-   * Carga la lista de tarjetas desde el backend.
+   * Carga todos los datos iniciales necesarios en paralelo.
+   */
+  loadInitialData(): void {
+    forkJoin({
+      bankCards: this.bankCardService.getBankCards(),
+      clients: this.clientService.getClients(),
+      users: this.userService.getUsers()
+    }).subscribe({
+      next: (results: any) => {
+        console.log('Resultados cargados:', results);
+
+        // Guardar en cache con validación
+        this.usersCache = results.users?.data || results.users || [];
+        this.clientsCache = results.clients?.data || results.clients || [];
+
+        console.log('Resultados cargados:', results);
+
+        // Guardar en cache con validación
+        this.usersCache = results.users?.data || results.users || [];
+        this.clientsCache = results.clients?.data || results.clients || [];
+
+        console.log('Users cache:', this.usersCache);
+        console.log('Clients cache:', this.clientsCache);
+
+        // Crear mapas para búsqueda rápida (usando _id o id según lo que venga)
+        const usersMap = new Map(
+          this.usersCache.map((user: any) => [user._id || user.id, user])
+        );
+        const clientsMap = new Map(
+          this.clientsCache.map((client: any) => [client._id || client.id, client])
+        );
+
+        // Enriquecer tarjetas con datos del cliente y usuario
+        const bankCardsData = results.bankCards?.data || results.bankCards || [];
+        this.bankCards = bankCardsData.map((card: any) => {
+          const client = clientsMap.get(card.clientId);
+          const user = client ? usersMap.get(client.userId) : null;
+          
+          return {
+            ...card,
+            id: card._id || card.id,  // Normalizar el ID
+            clientName: user?.name || 'Sin nombre',
+            clientEmail: user?.email || client?.userId || 'N/A'
+          };
+        });
+        
+        console.log('Tarjetas cargadas:', this.bankCards.length, 'registros');
+
+        // Construir opciones para el select de clientes
+        const clientOptions = this.clientsCache.map((client: any) => {
+          const user = usersMap.get(client.userId);
+          
+          return {
+            value: client._id || client.id,
+            label: `👤 ${user?.name || 'Sin nombre'} - ${user?.email || client.userId} (Cliente ID: ${client._id || client.id})`
+          };
+        });
+
+        // Definir los campos del formulario con las opciones cargadas
+        this.fields = [
+          { 
+            name: 'clientId',
+            label: 'Cliente', 
+            type: 'select',
+            placeholder: 'Seleccione un cliente',
+            required: true,
+            options: clientOptions
+          },
+          {
+            name: 'cardNumber',
+            label: 'Número de Tarjeta',
+            type: 'text',
+            placeholder: 'Ingrese el número de tarjeta (13-19 dígitos)',
+            required: true,
+            minLength: 13,
+            maxLength: 19,
+            pattern: '^[0-9]{13,19}$'
+          },
+          { 
+            name: 'cvv', 
+            label: 'CVV', 
+            type: 'password',
+            placeholder: 'Ingrese el CVV (3-4 dígitos)',
+            required: true, 
+            minLength: 3,
+            maxLength: 4,
+            pattern: '^[0-9]{3,4}$'
+          },
+          { 
+            name: 'expirationDate',
+            label: 'Fecha de Expiración', 
+            type: 'date', 
+            placeholder: 'Seleccione la fecha de expiración',
+            required: true 
+          },
+          { 
+            name: 'cardHolderName',
+            label: 'Nombre del Titular', 
+            type: 'text', 
+            placeholder: 'Ingrese el nombre del titular',
+            required: true, 
+            minLength: 3,
+            maxLength: 255,
+          },
+        ];
+
+        console.log('Campos del formulario configurados:', this.fields);
+      },
+      error: (err) => console.error('Error al cargar datos iniciales', err),
+    });
+  }
+
+  /**
+   * Recarga solo la lista de tarjetas (con enriquecimiento de datos).
    * ⚠️ SEGURIDAD: El backend debería enmascarar datos sensibles
    */
   loadCards(): void {
     this.bankCardService.getBankCards().subscribe({
       next: (res: any) => {
-        this.bankCards = res.data;  // ✅ Extraer solo el array de data
-        console.log('Tarjetas cargadas:', this.bankCards.length, 'registros'); // ✅ Log seguro
+        // Crear mapas para búsqueda rápida (usando _id o id)
+        const usersMap = new Map(
+          this.usersCache.map((user: any) => [user._id || user.id, user])
+        );
+        const clientsMap = new Map(
+          this.clientsCache.map((client: any) => [client._id || client.id, client])
+        );
+
+        // Enriquecer tarjetas con datos del cliente y usuario
+        const bankCardsData = res.data || res || [];
+        this.bankCards = bankCardsData.map((card: any) => {
+          const client = clientsMap.get(card.clientId);
+          const user = client ? usersMap.get(client.userId) : null;
+          
+          return {
+            ...card,
+            id: card._id || card.id,  // Normalizar el ID
+            clientName: user?.name || 'Sin nombre',
+            clientEmail: user?.email || client?.userId || 'N/A'
+          };
+        });
+
+        console.log('Tarjetas actualizadas:', this.bankCards.length, 'registros');
       },
       error: (err) => console.error('Error al cargar tarjetas', err),
     });
@@ -160,7 +268,10 @@ export class BankCardsComponent implements OnInit {
   update(id?: string, card?: BankCard): void {
     if (id && card) {
       this.bankCardService.updateBankCard(id, card).subscribe({
-        next: () => this.loadCards(),
+        next: () => {
+          console.log('Tarjeta actualizada exitosamente');
+          this.loadCards();
+        },
         error: (err) => console.error('Error al actualizar tarjeta', err),
       });
     }
@@ -173,7 +284,10 @@ export class BankCardsComponent implements OnInit {
   create(card?: BankCard): void {
     if (card) {
       this.bankCardService.createBankCard(card).subscribe({
-        next: () => this.loadCards(),
+        next: () => {
+          console.log('Tarjeta creada exitosamente');
+          this.loadCards();
+        },
         error: (err) => console.error('Error al crear tarjeta', err),
       });
     }
@@ -185,7 +299,10 @@ export class BankCardsComponent implements OnInit {
    */
   delete(id: string): void {
     this.bankCardService.deleteBankCard(id).subscribe({
-      next: () => this.loadCards(),
+      next: () => {
+        console.log('Tarjeta eliminada exitosamente');
+        this.loadCards();
+      },
       error: (err) => console.error('Error al eliminar tarjeta', err),
     });
   }

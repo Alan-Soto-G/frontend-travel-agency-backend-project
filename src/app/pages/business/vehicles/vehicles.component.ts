@@ -3,6 +3,7 @@ import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.com
 import { Vehicle } from 'src/app/models/business-models/vehicle.model';
 import { VehicleService } from 'src/app/services/models/business-models/vehicle.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
+import { forkJoin } from 'rxjs';
 
 /**
  * VehiclesComponent
@@ -61,83 +62,7 @@ export class VehiclesComponent implements OnInit {
   /**
    * Definición de los campos del formulario para el modal CRUD.
    */
-  fields: FormField[] = [
-    {
-      name: 'licensePlate',
-      label: 'Placa',
-      type: 'text',
-      placeholder: 'Ingrese la placa del vehículo (ej: ABC123)',
-      required: true,
-      min: 2,
-      max: 20,
-    },
-    {
-      name: 'brand',
-      label: 'Marca',
-      type: 'text',
-      placeholder: 'Ingrese la marca del vehículo',
-      required: true,
-      min: 2,
-      max: 50,
-    },
-    {
-      name: 'model',
-      label: 'Modelo',
-      type: 'text',
-      placeholder: 'Ingrese el modelo del vehículo',
-      required: true,
-      min: 1,
-      max: 50,
-    },
-    {
-      name: 'year',
-      label: 'Año',
-      type: 'number',
-      placeholder: 'Ingrese el año del vehículo (ej: 2024)',
-      required: true,
-      pattern: '^(19[0-9]{2}|20[0-9]{2}|2100)$',
-    },
-    {
-      name: 'color',
-      label: 'Color',
-      type: 'text',
-      placeholder: 'Ingrese el color del vehículo',
-      required: true,
-      min: 2,
-      max: 30,
-    },
-    {
-      name: 'numberOfSeats',
-      label: 'Número de Asientos',
-      type: 'number',
-      placeholder: 'Ingrese el número de asientos',
-      required: true,
-      min: 1,
-      max: 100,
-    },
-    {
-      name: 'vehicleType',
-      label: 'Tipo de Vehículo',
-      type: 'text',
-      placeholder: 'Ingrese el tipo de vehículo (ej: Bus, Van, Auto)',
-      required: true,
-      min: 2,
-      max: 50,
-    },
-    {
-      name: 'status',
-      label: 'Estado',
-      type: 'select',
-      placeholder: 'Seleccione el estado',
-      required: false,
-      options: [
-        { value: 'available', text: 'Disponible' },
-        { value: 'in_use', text: 'En Uso' },
-        { value: 'maintenance', text: 'Mantenimiento' },
-        { value: 'retired', text: 'Retirado' }
-      ]
-    },
-  ];
+  fields: FormField[] = [];
 
   /**
    * Constructor: inicializa el servicio y las funciones CRUD.
@@ -156,17 +81,121 @@ export class VehiclesComponent implements OnInit {
    * Carga inicial de los vehículos al montar el componente.
    */
   ngOnInit(): void {
-    this.loadVehicles();
+    this.loadInitialData();
   }
 
   /**
-   * Carga la lista de vehículos desde el backend.
+   * Carga todos los datos iniciales necesarios en paralelo.
+   */
+  loadInitialData(): void {
+    forkJoin({
+      vehicles: this.vehicleService.getVehicles()
+    }).subscribe({
+      next: (results: any) => {
+        this.vehicles = results.vehicles.data;
+
+        console.log('Vehículos cargados:', this.vehicles.length, 'registros');
+
+        // Definir los campos del formulario
+        this.fields = [
+          {
+            name: 'licensePlate',
+            label: 'Placa',
+            type: 'text',
+            placeholder: 'Ingrese la placa del vehículo (ej: ABC123)',
+            required: true,
+            minLength: 2,
+            maxLength: 20,
+          },
+          {
+            name: 'brand',
+            label: 'Marca',
+            type: 'text',
+            placeholder: 'Ingrese la marca del vehículo',
+            required: true,
+            minLength: 2,
+            maxLength: 50,
+          },
+          {
+            name: 'model',
+            label: 'Modelo',
+            type: 'text',
+            placeholder: 'Ingrese el modelo del vehículo',
+            required: true,
+            minLength: 1,
+            maxLength: 50,
+          },
+          {
+            name: 'year',
+            label: 'Año',
+            type: 'number',
+            placeholder: 'Ingrese el año del vehículo (ej: 2024)',
+            required: true,
+            min: 1900,
+            max: 2100,
+          },
+          {
+            name: 'color',
+            label: 'Color',
+            type: 'text',
+            placeholder: 'Ingrese el color del vehículo',
+            required: true,
+            minLength: 2,
+            maxLength: 30,
+          },
+          {
+            name: 'numberOfSeats',
+            label: 'Número de Asientos',
+            type: 'number',
+            placeholder: 'Ingrese el número de asientos',
+            required: true,
+            min: 1,
+            max: 100,
+          },
+          {
+            name: 'vehicleType',
+            label: 'Tipo de Vehículo',
+            type: 'select',
+            placeholder: 'Seleccione el tipo de vehículo',
+            required: true,
+            options: [
+              { value: 'bus', label: '🚌 Bus' },
+              { value: 'van', label: '🚐 Van' },
+              { value: 'car', label: '🚗 Auto' },
+              { value: 'minibus', label: '🚙 Minibús' },
+              { value: 'suv', label: '🚙 SUV' },
+              { value: 'other', label: '🚘 Otro' },
+            ],
+          },
+          {
+            name: 'status',
+            label: 'Estado',
+            type: 'select',
+            placeholder: 'Seleccione el estado',
+            required: true,
+            options: [
+              { value: 'available', label: '✅ Disponible' },
+              { value: 'in_use', label: '🚗 En Uso' },
+              { value: 'maintenance', label: '🔧 Mantenimiento' },
+              { value: 'retired', label: '🚫 Retirado' }
+            ]
+          },
+        ];
+
+        console.log('Campos del formulario configurados:', this.fields);
+      },
+      error: (err) => console.error('Error al cargar datos iniciales', err),
+    });
+  }
+
+  /**
+   * Recarga solo la lista de vehículos.
    */
   loadVehicles(): void {
     this.vehicleService.getVehicles().subscribe({
       next: (res: any) => {
         this.vehicles = res.data;
-        console.log('Vehículos cargados:', this.vehicles.length, 'registros');
+        console.log('Vehículos actualizados:', this.vehicles.length, 'registros');
       },
       error: (err) => console.error('Error al cargar vehículos', err),
     });
@@ -191,7 +220,10 @@ export class VehiclesComponent implements OnInit {
   update(id?: string, vehicle?: Vehicle): void {
     if (id && vehicle) {
       this.vehicleService.updateVehicle(id, vehicle).subscribe({
-        next: () => this.loadVehicles(),
+        next: () => {
+          console.log('Vehículo actualizado exitosamente');
+          this.loadVehicles();
+        },
         error: (err) => console.error('Error al actualizar vehículo', err),
       });
     }
@@ -204,7 +236,10 @@ export class VehiclesComponent implements OnInit {
   create(vehicle?: Vehicle): void {
     if (vehicle) {
       this.vehicleService.createVehicle(vehicle).subscribe({
-        next: () => this.loadVehicles(),
+        next: () => {
+          console.log('Vehículo creado exitosamente');
+          this.loadVehicles();
+        },
         error: (err) => console.error('Error al crear vehículo', err),
       });
     }
@@ -216,9 +251,11 @@ export class VehiclesComponent implements OnInit {
    */
   delete(id: string): void {
     this.vehicleService.deleteVehicle(id).subscribe({
-      next: () => this.loadVehicles(),
+      next: () => {
+        console.log('Vehículo eliminado exitosamente');
+        this.loadVehicles();
+      },
       error: (err) => console.error('Error al eliminar vehículo', err),
     });
   }
 }
-
