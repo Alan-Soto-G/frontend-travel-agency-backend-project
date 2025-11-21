@@ -97,7 +97,16 @@ const routes: Routes = [
           method: 'GET'
         }
       },
-            {
+      {
+        path: 'clients',
+        loadComponent: () => import('./pages/business/clients/clients.component').then((m) => m.ClientsComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/clients',
+          method: 'GET'
+        }
+      },
+      {
         path: 'invoices',
         loadComponent: () => import('./pages/business/invoices/invoices.component').then((m) => m.InvoicesComponent),
         canActivate: [permissionGuard],
@@ -159,6 +168,24 @@ const routes: Routes = [
         canActivate: [permissionGuard],
         data: {
           apiUrl: '/api/journeys',
+          method: 'GET'
+        }
+      },
+      {
+        path: 'transport-itineraries',
+        loadComponent: () => import('./pages/business/transport-itineraries/transport-itineraries.component').then((m) => m.TransportItinerariesComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/transport-itineraries',
+          method: 'GET'
+        }
+      },
+      {
+        path: 'vehicles',
+        loadComponent: () => import('./pages/business/vehicles/vehicles.component').then((m) => m.VehiclesComponent),
+        canActivate: [permissionGuard],
+        data: {
+          apiUrl: '/api/vehicles',
           method: 'GET'
         }
       },
