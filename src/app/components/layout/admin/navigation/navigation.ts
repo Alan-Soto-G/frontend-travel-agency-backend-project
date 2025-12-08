@@ -27,7 +27,7 @@ export const NavigationItems: NavigationItem[] = [
         title: 'Dashboard',
         type: 'item',
         classes: 'nav-item',
-        url: '/default',
+        url: '/dashboard',
         icon: 'ti ti-dashboard',
         breadcrumbs: false
       }
