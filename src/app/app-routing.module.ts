@@ -15,15 +15,15 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: '/default',
+        redirectTo: '/main',
         pathMatch: 'full'
       },
       {
-        path: 'default',
-        loadComponent: () => import('./pages/dashboard/default/default.component').then((c) => c.DefaultComponent),
+        path: 'dashboard',
+        loadComponent: () => import('./pages/business/reports-dashboard/reports-dashboard.component').then((m) => m.ReportsDashboardComponent),
         canActivate: [permissionGuard],
         data: {
-          apiUrl: '/api/dashboard', // Ajusta según tu endpoint
+          apiUrl: '/api/reports',
           method: 'GET'
         }
       },

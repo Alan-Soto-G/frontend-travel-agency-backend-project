@@ -100,6 +100,9 @@ dist
 # DynamoDB Local files
 .dynamodb/
 
+# Add folder (development notes)
+add/
+
 # TernJS port file
 .tern-port
 
@@ -109,3 +112,6 @@ dist
 
 .idea/
 src/environments/environment.ts
+
+add
+
