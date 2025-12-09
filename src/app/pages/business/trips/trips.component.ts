@@ -129,8 +129,12 @@ export class TripsComponent implements OnInit {
       label: 'Estado',
       type: 'select',
       options: [
-  { label: 'Activo', value: 'active' },
-  { label: 'Inactivo', value: 'inactive' }
+        { label: 'Borrador', value: 'draft' },
+        { label: 'Publicado', value: 'published' },
+        { label: 'Activo', value: 'active' },
+        { label: 'Lleno', value: 'full' },
+        { label: 'Completado', value: 'completed' },
+        { label: 'Cancelado', value: 'cancelled' }
       ],
       required: true,
     },
