@@ -103,6 +103,9 @@ dist
 # Add folder (development notes)
 add/
 
+# Manual de usuario (borrador)
+manual-usuario/
+
 # TernJS port file
 .tern-port
 
