@@ -88,7 +88,24 @@ export class ReportsDashboardComponent implements OnInit {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'bottom'
+        position: 'bottom',
+        labels: {
+          generateLabels: (chart) => {
+            const data = chart.data;
+            if (data.labels && data.datasets.length) {
+              return data.labels.map((label, i) => {
+                const value = data.datasets[0].data[i] as number;
+                return {
+                  text: `${label}: ${value.toFixed(2)}%`,
+                  fillStyle: (data.datasets[0].backgroundColor as string[])?.[i] || '#000',
+                  hidden: false,
+                  index: i
+                };
+              });
+            }
+            return [];
+          }
+        }
       },
       tooltip: {
         callbacks: {
