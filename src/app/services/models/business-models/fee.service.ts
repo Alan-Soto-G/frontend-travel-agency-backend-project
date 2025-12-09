@@ -18,15 +18,40 @@ export class FeeService {
     return this.http.get<Fee>(`${this.businessApiUrl}/${id}`);
   }
 
-  createFee(fee: Fee): Observable<Fee> {
+  createFee(fee: Partial<Fee>): Observable<Fee> {
     return this.http.post<Fee>(this.businessApiUrl, fee);
   }
 
-  updateFee(id: string, fee: Fee): Observable<Fee> {
+  updateFee(id: string, fee: Partial<Fee>): Observable<Fee> {
     return this.http.put<Fee>(`${this.businessApiUrl}/${id}`, fee);
   }
 
   deleteFee(id: string): Observable<void> {
     return this.http.delete<void>(`${this.businessApiUrl}/${id}`);
+  }
+
+
+
+  /**
+   * GET /fees/my-installments
+   * Obtener cuotas del usuario autenticado
+   */
+  getMyInstallments(): Observable<any> {
+    return this.http.get<any>(`${this.businessApiUrl}/my-installments`);
+  }
+
+  /**
+   * GET /fees/trip-client/:tripClientId
+   * Obtener cuotas por ID de trip client
+   */
+  getInstallmentsByTripClient(tripClientId: number): Observable<Fee[]> {
+    return this.http.get<Fee[]>(`${this.businessApiUrl}/trip-client/${tripClientId}`);
+  }
+
+  /**
+   * Actualizar solo el estado de una cuota
+   */
+  updateFeeStatus(id: string, status: 'pending' | 'paid' | 'overdue'): Observable<Fee> {
+    return this.updateFee(id, { status });
   }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.component';
 import { Fee } from 'src/app/models/business-models/fee.model';
 import { FeeService } from 'src/app/services/models/business-models/fee.service';
-import { TripService } from 'src/app/services/models/business-models/trip.service';
+import { TripClientService } from 'src/app/services/models/business-models/trip-client.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
 import { forkJoin } from 'rxjs';
 
@@ -29,7 +29,8 @@ export class FeesComponent implements OnInit {
    */
   headTable: string[] = [
     'ID',
-    'Viaje',
+    'Reserva (Cliente - Viaje)',
+    'N° Cuota',
     'Monto',
     'Descripción',
     'Fecha Límite',
@@ -43,7 +44,8 @@ export class FeesComponent implements OnInit {
    */
   itemsData: string[] = [
     'id',
-    'trip.name',        // Mostrar nombre del viaje en lugar de ID
+    'tripClient.id',       // Por ahora solo muestra el ID del TripClient
+    'installmentNumber',
     'amount',
     'description',
     'dueDate',
@@ -64,11 +66,11 @@ export class FeesComponent implements OnInit {
   /**
    * Constructor: inicializa los servicios y las funciones CRUD.
    * @param feeService Servicio para gestionar las tarifas
-   * @param tripService Servicio para obtener los viajes
+   * @param tripClientService Servicio para obtener las reservas (TripClient)
    */
   constructor(
     private feeService: FeeService,
-    private tripService: TripService
+    private tripClientService: TripClientService
   ) {
     this.arrayFunctions = {
       update: (id?: string, fee?: Fee) => this.update(id, fee),
@@ -79,7 +81,7 @@ export class FeesComponent implements OnInit {
   }
 
   /**
-   * Carga inicial: obtiene tarifas y viajes.
+   * Carga inicial: obtiene tarifas y reservas (TripClient).
    */
   ngOnInit(): void {
     this.loadInitialData();
@@ -91,28 +93,36 @@ export class FeesComponent implements OnInit {
   loadInitialData(): void {
     forkJoin({
       fees: this.feeService.getFees(),
-      trips: this.tripService.getTrips()
+      tripClients: this.tripClientService.getAllTripClients()
     }).subscribe({
       next: (results: any) => {
         // Cargar tarifas
         this.fees = results.fees.data;
         console.log('Tarifas cargadas:', this.fees.length, 'registros');
 
-        // Construir opciones para el select de viajes
-        const tripOptions = results.trips.data.map((trip: any) => ({
-          value: trip.id,
-          label: `${trip.name} - ${trip.destination} (${trip.startDate ? new Date(trip.startDate).toLocaleDateString() : 'Sin fecha'}) - $${trip.price}`
+        // Construir opciones para el select de TripClient (reservas)
+        const tripClientOptions = results.tripClients.data.map((tripClient: any) => ({
+          value: tripClient.id,
+          label: `${tripClient.client?.name || 'Cliente'} - ${tripClient.trip?.name || 'Viaje'} (${tripClient.trip?.destination || ''}) - $${tripClient.totalWithInterest || tripClient.trip?.price || 0}`
         }));
 
         // Definir los campos del formulario con las opciones cargadas
         this.fields = [
           { 
-            name: 'tripId',
-            label: 'Viaje', 
+            name: 'tripClientId',
+            label: 'Reserva (Cliente - Viaje)', 
             type: 'select',
-            placeholder: 'Seleccione un viaje',
+            placeholder: 'Seleccione una reserva',
             required: true,
-            options: tripOptions
+            options: tripClientOptions
+          },
+          { 
+            name: 'installmentNumber',
+            label: 'Número de Cuota', 
+            type: 'number', 
+            placeholder: 'Ej: 1, 2, 3...',
+            required: true,
+            min: 1,
           },
           { 
             name: 'amount', 
@@ -126,7 +136,7 @@ export class FeesComponent implements OnInit {
             name: 'description',
             label: 'Descripción',
             type: 'textarea',
-            placeholder: 'Detalle de la tarifa (opcional)',
+            placeholder: 'Detalle de la cuota (opcional)',
             required: false,
             maxLength: 500,
           },
@@ -146,6 +156,8 @@ export class FeesComponent implements OnInit {
               { value: 'pending', label: 'Pendiente' },
               { value: 'paid', label: 'Pagado' },
               { value: 'overdue', label: 'Vencido' },
+              { value: 'cancelled', label: 'Cancelado' },
+              { value: 'refunded', label: 'Reembolsado' },
             ],
             required: true,
           },

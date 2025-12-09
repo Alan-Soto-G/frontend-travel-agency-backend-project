@@ -264,5 +264,21 @@ export class TableCrudComponent {
         this.arrayFuctions['delete'](this.currentItemId);
         break;
     }
+    }
+    /**
+   * Indica si se debe mostrar el botón de carrito (opcional)
+   */
+  @Input() showCartButton: boolean = false;
+
+  /**
+   * Maneja el click en el botón de agregar al carrito
+   * @param item El item a agregar al carrito
+   */
+  handleCartClick(item: any): void {
+    if (this.arrayFuctions && this.arrayFuctions['addToCart']) {
+      this.arrayFuctions['addToCart'](item);
+    } else {
+      console.warn('La función addToCart no está definida en arrayFuctions');
+    }
   }
 }

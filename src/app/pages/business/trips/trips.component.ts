@@ -3,28 +3,20 @@ import { TableCrudComponent } from 'src/app/components/table-crud/table-crud.com
 import { Trip } from 'src/app/models/business-models/trip.model';
 import { TripService } from 'src/app/services/models/business-models/trip.service';
 import { FormField } from 'src/app/models/security-models/form-field.component';
+import { CartService } from 'src/app/services/cart/cart.service';
+import { TripClientService } from 'src/app/services/models/business-models/trip-client.service';
+import { ClientService } from 'src/app/services/models/business-models/client.service'; // ✅ IMPORTAR
+import { TripClient } from 'src/app/models/business-models/trip-client.model';
 
-/**
- * TripsComponent
- *
- * Componente de página para la gestión de viajes (Trips).
- * Muestra una tabla CRUD reutilizable para los viajes y define los campos y funciones específicas.
- * Utiliza el servicio TripService para operaciones CRUD.
- */
 @Component({
   selector: 'app-trips',
   imports: [TableCrudComponent],
   templateUrl: './trips.component.html',
 })
 export class TripsComponent implements OnInit {
-  /**
-   * Lista de viajes cargados desde el backend.
-   */
   trips: Trip[] = [];
+  private clientId: number | null = null;
 
-  /**
-   * Encabezados de la tabla.
-   */
   headTable: string[] = [
     'ID',
     'Nombre',
@@ -39,9 +31,6 @@ export class TripsComponent implements OnInit {
     'Eliminar'
   ];
 
-  /**
-   * Campos de los datos a mostrar en la tabla.
-   */
   itemsData: string[] = [
     'id',
     'name',
@@ -54,14 +43,8 @@ export class TripsComponent implements OnInit {
     'endDate'
   ];
 
-  /**
-   * Diccionario de funciones CRUD para pasar al componente de tabla.
-   */
   arrayFunctions: Record<string, Function>;
 
-  /**
-   * Definición de los campos del formulario para el modal CRUD.
-   */
   fields: FormField[] = [
     {
       name: 'name',
@@ -129,50 +112,64 @@ export class TripsComponent implements OnInit {
       label: 'Estado',
       type: 'select',
       options: [
-  { label: 'Activo', value: 'active' },
-  { label: 'Inactivo', value: 'inactive' }
+        { label: 'Activo', value: 'active' },
+        { label: 'Inactivo', value: 'inactive' }
       ],
       required: true,
     },
   ];
 
-  /**
-   * Constructor: inicializa el servicio y las funciones CRUD.
-   * @param tripService Servicio para gestionar los viajes
-   */
-  constructor(private tripService: TripService) {
+  constructor(
+    private tripService: TripService,
+    private cartService: CartService,
+    private tripClientService: TripClientService,
+    private clientService: ClientService // ✅ INYECTAR ClientService
+  ) {
     this.arrayFunctions = {
       update: (id?: string, trip?: Trip) => this.update(id, trip),
       create: (trip?: Trip) => this.create(trip),
       findById: (id: string) => this.findById(id),
       delete: (id: string) => this.delete(id),
+      addToCart: (trip: Trip) => this.addToCart(trip),
     };
   }
 
-  /**
-   * Carga inicial de los viajes al montar el componente.
-   */
   ngOnInit(): void {
     this.loadTrips();
+    this.loadClientId();
   }
 
-  /**
-   * Carga la lista de viajes desde el backend.
-   */
   loadTrips(): void {
     this.tripService.getTrips().subscribe({
       next: (res: any) => {
-        this.trips = res.data;  // ✅ Solo el array de viajes
-        console.log(this.trips); // Verifica que se cargue correctamente
+        this.trips = res.data;
+        console.log('Viajes cargados:', this.trips);
       },
       error: (err) => console.error('Error al cargar viajes', err),
     });
   }
 
   /**
-   * Busca un viaje por ID.
-   * @param id ID del viaje
+   * ✅ CORREGIDO: Usar ClientService.getClientIdByUser()
    */
+  private loadClientId(): void {
+    this.clientService.getClientIdByUser().subscribe({
+      next: (response) => {
+        if (response.data && response.data.clientId) {
+          this.clientId = response.data.clientId;
+          console.log('✅ Client ID obtenido:', this.clientId);
+        } else {
+          console.log('ℹ️ Usuario no es cliente');
+          this.clientId = null;
+        }
+      },
+      error: (err) => {
+        console.log('ℹ️ Error al obtener clientId:', err);
+        this.clientId = null;
+      }
+    });
+  }
+
   findById(id: string): void {
     this.tripService.getTripById(id).subscribe({
       next: (data) => console.log('Viaje encontrado:', data),
@@ -180,11 +177,6 @@ export class TripsComponent implements OnInit {
     });
   }
 
-  /**
-   * Actualiza un viaje.
-   * @param id ID del viaje
-   * @param trip Datos actualizados
-   */
   update(id?: string, trip?: Trip): void {
     if (id && trip) {
       this.tripService.updateTrip(id, trip).subscribe({
@@ -194,10 +186,6 @@ export class TripsComponent implements OnInit {
     }
   }
 
-  /**
-   * Crea un nuevo viaje.
-   * @param trip Datos del nuevo viaje
-   */
   create(trip?: Trip): void {
     if (trip) {
       this.tripService.createTrip(trip).subscribe({
@@ -207,14 +195,74 @@ export class TripsComponent implements OnInit {
     }
   }
 
-  /**
-   * Elimina un viaje.
-   * @param id ID del viaje a eliminar
-   */
   delete(id: string): void {
     this.tripService.deleteTrip(id).subscribe({
       next: () => this.loadTrips(),
       error: (err) => console.error('Error al eliminar viaje', err),
+    });
+  }
+
+  /**
+   * ✅ Agregar viaje al carrito creando la orden en el backend
+   */
+  addToCart(trip: Trip): void {
+    // Validaciones básicas
+    if (trip.status !== 'active') {
+      alert('⚠️ Este viaje no está disponible en este momento');
+      return;
+    }
+
+    if (trip.availableSeats < 1) {
+      alert('⚠️ No hay asientos disponibles para este viaje');
+      return;
+    }
+
+    const endDate = new Date(trip.endDate);
+    if (endDate < new Date()) {
+      alert('⚠️ Este viaje ya ha finalizado');
+      return;
+    }
+
+    // Verificar si el usuario es cliente
+    if (!this.clientId) {
+      alert('⚠️ Debes ser un cliente registrado para agregar al carrito.\n\nPor favor, completa tu perfil de cliente primero.');
+      return;
+    }
+
+    // Crear la orden en el backend
+    const orderData: TripClient = {
+      tripId: trip.id,
+      clientId: this.clientId,
+      travelers: 1,
+      quantity: 1,
+      installments: 1,
+      totalAmount: trip.price,
+      totalWithInterest: trip.price,
+      interestRate: 0
+    };
+
+    console.log('📦 Creando orden:', orderData);
+
+    this.tripClientService.createOrder(orderData).subscribe({
+      next: (response) => {
+        console.log('✅ Orden creada:', response);
+        
+        // Agregar al carrito local
+        this.cartService.addToCart(trip, 1);
+        
+        alert(`✅ "${trip.name}" agregado al carrito correctamente`);
+      },
+      error: (err) => {
+        console.error('❌ Error al crear orden:', err);
+        
+        if (err.status === 401) {
+          alert('⚠️ Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        } else if (err.status === 400) {
+          alert('⚠️ No se pudo crear la orden. Verifica los datos e intenta de nuevo.');
+        } else {
+          alert('❌ Error al agregar al carrito. Intenta de nuevo más tarde.');
+        }
+      }
     });
   }
 }
