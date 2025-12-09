@@ -1,1 +1,15 @@
-// This file is intentionally left empty to allow customers to add custom CSS if needed.
+.pc-header {
+  height: auto !important;
+  min-height: 70px;
+  
+  .category-bar {
+    z-index: 1000;
+    
+    .btn-link {
+      color: #555;
+      &:hover {
+        color: #8e24aa;
+      }
+    }
+  }
+}

@@ -12,6 +12,7 @@ import { User } from '../../../models/security-models/user.model';
 import { LoginResponse } from '../../../models/security-models/login-response.model';
 import { Session } from '../../../models/security-models/session.model';
 import { NotificationService } from '../../notifications/notification.service';
+import { jwtDecode } from 'jwt-decode';
 
 /**
  * Servicio para autenticación tradicional con email/password + 2FA (OTP)
@@ -160,6 +161,18 @@ export class TraditionalLoginService {
             } as any);
 
             sessionStorage.setItem('user', JSON.stringify(loginResponse.user));
+
+            // Decodificar token y guardar datos en localStorage
+            try {
+              const decoded: any = jwtDecode(createdSession.token!);
+              if (decoded) {
+                localStorage.setItem('userName', decoded.name || decoded.sub || '');
+                localStorage.setItem('userEmail', decoded.email || '');
+                console.log('✅ Datos de usuario guardados en localStorage desde token');
+              }
+            } catch (e) {
+              console.error('Error decodificando token', e);
+            }
 
             this.toastr.success('Sesión iniciada correctamente', 'Login Exitoso');
 

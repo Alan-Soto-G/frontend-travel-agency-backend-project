@@ -1,2 +1,162 @@
-<p>Welcome!</p>
+<div class="main-container">
+  <!-- Hero Section -->
+  <div class="hero-section text-center text-white">
+    <h1 class="mb-2">Encuentra tu próximo destino</h1>
+    <p class="mb-4">Descubre ofertas increíbles en paquetes de viaje</p>
+    
+    <div class="search-card bg-purple p-4 rounded-3 mx-auto">
+      <h3 class="text-start text-white mb-3">Paquetes turísticos</h3>
+      <div class="row g-2">
+        <div class="col-md-3">
+          <div class="input-group bg-white rounded p-2 h-100">
+            <span class="input-group-text border-0 bg-transparent"><i class="ti ti-map-pin text-secondary"></i></span>
+            <div class="form-floating flex-grow-1">
+              <input type="text" class="form-control border-0 p-0 pt-3" id="origin" placeholder="Ciudad de origen" value="Ciudad de origen">
+              <label for="origin" class="text-muted small">ORIGEN</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="input-group bg-white rounded p-2 h-100">
+            <span class="input-group-text border-0 bg-transparent"><i class="ti ti-map-pin text-secondary"></i></span>
+            <div class="form-floating flex-grow-1">
+              <input type="text" class="form-control border-0 p-0 pt-3" id="destination" placeholder="Ingresa hacia donde...">
+              <label for="destination" class="text-muted small">DESTINO</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="input-group bg-white rounded p-2 h-100">
+            <span class="input-group-text border-0 bg-transparent"><i class="ti ti-calendar text-secondary"></i></span>
+            <div class="form-floating flex-grow-1">
+              <input type="date" class="form-control border-0 p-0 pt-3" id="entry">
+              <label for="entry" class="text-muted small">ENTRADA</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="input-group bg-white rounded p-2 h-100">
+            <span class="input-group-text border-0 bg-transparent"><i class="ti ti-calendar text-secondary"></i></span>
+            <div class="form-floating flex-grow-1">
+              <input type="date" class="form-control border-0 p-0 pt-3" id="exit">
+              <label for="exit" class="text-muted small">SALIDA</label>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <div class="row g-2 mt-2">
+        <div class="col-md-4">
+          <div class="bg-white rounded p-3 d-flex justify-content-between align-items-center shadow-sm">
+            <div class="d-flex align-items-center">
+              <div class="avtar avtar-s bg-transparent text-secondary me-3">
+                <i class="ti ti-bed fs-4"></i>
+              </div>
+              <div>
+                <small class="text-muted d-block fw-bold">HABITACIONES</small>
+                <strong class="fs-5">{{ rooms }}</strong>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-icon btn-light-secondary rounded-circle p-2" (click)="decrement('rooms')">
+                <i class="ti ti-minus"></i>
+              </button>
+              <button class="btn btn-icon btn-light-secondary rounded-circle p-2" (click)="increment('rooms')">
+                <i class="ti ti-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="bg-white rounded p-3 d-flex justify-content-between align-items-center shadow-sm">
+            <div class="d-flex align-items-center">
+              <div class="avtar avtar-s bg-transparent text-secondary me-3">
+                <i class="ti ti-users fs-4"></i>
+              </div>
+              <div>
+                <small class="text-muted d-block fw-bold">ADULTOS</small>
+                <strong class="fs-5">{{ adults }}</strong>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-icon btn-light-secondary rounded-circle p-2" (click)="decrement('adults')">
+                <i class="ti ti-minus"></i>
+              </button>
+              <button class="btn btn-icon btn-light-secondary rounded-circle p-2" (click)="increment('adults')">
+                <i class="ti ti-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="bg-white rounded p-3 d-flex justify-content-between align-items-center shadow-sm">
+            <div class="d-flex align-items-center">
+              <div class="avtar avtar-s bg-transparent text-secondary me-3">
+                <i class="ti ti-mood-kid fs-4"></i>
+              </div>
+              <div>
+                <small class="text-muted d-block fw-bold">NIÑOS</small>
+                <strong class="fs-5">{{ children }}</strong>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-icon btn-light-secondary rounded-circle p-2" (click)="decrement('children')">
+                <i class="ti ti-minus"></i>
+              </button>
+              <button class="btn btn-icon btn-light-secondary rounded-circle p-2" (click)="increment('children')">
+                <i class="ti ti-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+            <div class="text-end mt-3">
+        <button class="btn btn-danger rounded-pill px-4">
+          <i class="ti ti-search me-1"></i> Buscar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommended Packages -->
+  <app-recommended-packages></app-recommended-packages>
+
+  <!-- Bottom Cards -->
+  <div class="container pb-5">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card border-0 rounded-4 bg-light-purple p-4 h-100 d-flex flex-row align-items-center">
+          <div class="me-4">
+            <div class="icon-circle bg-white text-purple rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+              <i class="ti ti-headset fs-2"></i>
+            </div>
+          </div>
+          <div>
+            <h4 class="fw-bold mb-2">Compra tu viaje</h4>
+            <p class="text-muted small mb-3">
+              con asesoría personalizada. Nuestros agentes expertos te pueden ayudar a concretar tu viaje. ¡Consulta nuestros canales de atención!
+            </p>
+            <button class="btn btn-purple rounded-pill px-4">Conocer canales →</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card border-0 rounded-4 bg-purple p-4 h-100 d-flex flex-row align-items-center text-white">
+          <div class="me-4">
+            <div class="icon-circle bg-white-transparent rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+              <i class="ti ti-sparkles fs-2"></i>
+            </div>
+          </div>
+          <div>
+            <h4 class="fw-bold mb-2">Planea tu viaje</h4>
+            <p class="small mb-3 opacity-75">
+              con Inteligencia Artificial. ¿Tienes un viaje en mente y no sabes por dónde empezar? SOFIA, nuestra asistente de viajes con IA, puede guiarte.
+            </p>
+            <button class="btn btn-light text-purple rounded-pill px-4">Chatear con SOFIA →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

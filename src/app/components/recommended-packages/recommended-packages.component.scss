@@ -1,0 +1,30 @@
+.bg-purple {
+  background-color: #8e24aa !important;
+  color: white;
+}
+
+.text-purple {
+  color: #8e24aa !important;
+}
+
+.btn-purple {
+  background-color: #8e24aa;
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: #7b1fa2;
+    color: white;
+    transform: translateY(-2px);
+  }
+}
+
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  }
+}

@@ -109,6 +109,14 @@ export const NavigationItems: NavigationItem[] = [
         ]
       //fin rutas cruds
       },
+      {
+        id: 'calendar',
+        title: 'Calendar',
+        type: 'item',
+        url: '/calendar',
+        icon: 'ti ti-calendar',
+        breadcrumbs: false
+      },
           {
       id: 'TravelAgency',
       title: 'Travel Agency',

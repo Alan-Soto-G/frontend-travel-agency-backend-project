@@ -7,6 +7,7 @@ import { firstValueFrom, Observable, of } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
+import { jwtDecode } from 'jwt-decode';
 
 export interface Permission {
   url: string;
@@ -38,6 +39,37 @@ export class AuthService {
   async loginWithGoogle() {
     const provider = new GoogleAuthProvider();
     return this.loginAndSendToBackend(provider, 'Google');
+  }
+
+  /**
+   * Solicitar permisos de Google Calendar
+   */
+  async linkGoogleCalendar() {
+    const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
+    provider.addScope('https://www.googleapis.com/auth/calendar.events'); // Para poder agendar
+    
+    try {
+      const result = await signInWithPopup(this.auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      
+      if (credential?.accessToken) {
+        // Guardar token de Google en cookie (separado del token de sesión)
+        // Usamos un nombre distinto para evitar conflictos con el token principal
+        this.cookieService.set('calendar_token', credential.accessToken, {
+          path: '/',
+          expires: 0.04, // ~1 hora (1/24 días), ya que el token de Google expira en 1h
+          secure: false
+        });
+        this.toastr.success('Calendario conectado exitosamente', 'Google Calendar');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error linking Google Calendar', error);
+      this.toastr.error('No se pudo conectar con Google Calendar', 'Error');
+      return false;
+    }
   }
 
   /**
@@ -85,13 +117,25 @@ export class AuthService {
                 secure: false // Usar solo en HTTP, no en producción
               } as any);
               console.log('✅ JWT guardado en cookie correctamente');
+
+              // Decodificar token y guardar datos en localStorage
+              try {
+                const decoded: any = jwtDecode(response.jwt);
+                if (decoded) {
+                  localStorage.setItem('userName', decoded.name || decoded.sub || '');
+                  localStorage.setItem('userEmail', decoded.email || '');
+                  console.log('✅ Datos de usuario guardados en localStorage desde token');
+                }
+              } catch (e) {
+                console.error('Error decodificando token', e);
+              }
             } else {
               console.error('❌ No se encontró el JWT en la respuesta');
             }
 
             // 5. Guardar datos del usuario si vienen
             if (response.user) {
-              sessionStorage.setItem('user', JSON.stringify(response.user));
+              localStorage.setItem('user', JSON.stringify(response.user));
             }
           })
         )

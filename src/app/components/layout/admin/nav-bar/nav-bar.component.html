@@ -1,7 +1,9 @@
-<header class="pc-header coded-header">
-  <app-nav-logo [navCollapsed]="navCollapsed" (NavCollapse)="navCollapse()" />
-  <div class="header-wrapper">
-    <app-nav-left (NavCollapsedMob)="navCollapseMob()" />
-    <app-nav-right />
+<header class="pc-header coded-header d-flex flex-column">
+  <div class="d-flex w-100 align-items-center">
+    <app-nav-logo [navCollapsed]="navCollapsed" (NavCollapse)="navCollapse()" />
+    <div class="header-wrapper flex-grow-1">
+      <app-nav-left (NavCollapsedMob)="navCollapseMob()" />
+      <app-nav-right />
+    </div>
   </div>
 </header>

@@ -32,6 +32,8 @@
     "apexcharts": "4.7.0",
     "bootstrap": "5.3.7",
     "firebase": "^11.10.0",
+    "jwt-decode": "^4.0.0",
+    "lottie-web": "^5.13.0",
     "ng-apexcharts": "1.16.0",
     "ngx-cookie-service": "^20.1.0",
     "ngx-scrollbar": "18.0.0",

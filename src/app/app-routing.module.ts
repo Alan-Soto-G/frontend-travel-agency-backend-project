@@ -43,6 +43,10 @@ const routes: Routes = [
         // Sin guard de permisos - acceso libre para usuarios autenticados
       },
       {
+        path: 'calendar',
+        loadComponent: () => import('./pages/calendar/calendar.component').then((c) => c.CalendarComponent)
+      },
+      {
         path: 'users',
         loadComponent: () => import('./pages/security/users/users.component').then((m) => m.UsersComponent),
         canActivate: [permissionGuard],

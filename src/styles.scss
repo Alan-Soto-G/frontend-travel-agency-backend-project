@@ -48,3 +48,20 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 /* ngx-toastr styles */
 @import 'ngx-toastr/toastr';
+
+/* Clase global rápida para background morado */
+.bg-purple {
+  background-color: #8B50DC !important;
+}
+
+/* Clase utilitaria para texto gris (usada en labels como `text-grey`) */
+.text-grey {
+  color: #6c757d !important; /* mismo gris que bootstrap .text-muted */
+}
+
+/* Tamaño pequeño para iconos usados como <img> */
+.icon-sm {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}

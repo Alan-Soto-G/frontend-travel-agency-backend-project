@@ -1,0 +1,43 @@
+<div class="container py-5">
+  <h2 class="text-center mb-5 fw-bold text-dark">Paquetes turísticos a destinos populares con descuentos</h2>
+  
+  <div class="row g-4">
+    <div class="col-md-3" *ngFor="let pkg of packages">
+      <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="position-relative">
+          <img [src]="pkg.image" class="card-img-top" alt="{{ pkg.title }}" style="height: 200px; object-fit: cover;">
+          <span class="badge bg-purple position-absolute top-0 start-0 m-3 rounded-pill px-3 py-2">
+            {{ pkg.days }} días / {{ pkg.nights }} noches
+          </span>
+        </div>
+        
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <span class="badge bg-purple me-2">{{ pkg.rating }}</span>
+            <div class="text-warning">
+              <i class="ti ti-star-filled" *ngFor="let s of getStars(pkg.rating)"></i>
+            </div>
+          </div>
+          
+          <h5 class="card-title fw-bold mb-1">{{ pkg.title }}</h5>
+          <p class="text-muted small mb-3">
+            <i class="ti ti-map-pin me-1"></i> {{ pkg.location }}
+          </p>
+          
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-decoration-line-through text-muted small">${{ pkg.originalPrice | number }}</span>
+              <span class="badge bg-success">Ahorras ${{ pkg.discount | number }}</span>
+            </div>
+            <div class="d-flex align-items-end">
+              <span class="text-muted small me-1">Precio por persona</span>
+              <h4 class="text-purple fw-bold mb-0">${{ pkg.price | number }}</h4>
+            </div>
+          </div>
+          
+          <button class="btn btn-purple w-100 rounded-pill">Ver detalles</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

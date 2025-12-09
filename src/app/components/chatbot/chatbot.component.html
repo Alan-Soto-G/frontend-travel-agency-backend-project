@@ -1,0 +1,63 @@
+<div class="chatbot-container">
+  <!-- Floating Action Button -->
+  <button class="chatbot-fab" (click)="toggleChat()" *ngIf="!isOpen">
+    <span class="emoji">💬</span>
+  </button>
+
+  <!-- Chat Window -->
+  <div class="chatbot-window" [class.open]="isOpen">
+    <!-- Header -->
+    <div class="chatbot-header">
+      <span class="header-title">Asistente Virtual</span>
+      <div class="header-actions">
+        <button (click)="clearHistory()" title="Borrar historial">🗑️</button>
+        <button (click)="minimizeChat()" title="Minimizar">➖</button>
+        <button (click)="closeChat()" title="Cerrar">✖️</button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="chatbot-body">
+      <div class="static-section">
+        <!-- Animation Section -->
+        <div class="animation-section">
+          <div class="lottie-wrapper" (click)="toggleAnimation()">
+            <div #lottieContainer class="lottie-container"></div>
+          </div>
+        </div>
+
+        <!-- Topic Switch -->
+        <div class="topic-switch-container">
+          <div class="topic-switch">
+            <div class="switch-option" [class.active]="topic === 'general'" (click)="setTopic('general')">
+              General
+            </div>
+            <div class="switch-option" [class.active]="topic === 'policies'" (click)="setTopic('policies')">
+              Políticas
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversation -->
+      <div class="conversation-area">
+        <div *ngFor="let msg of messages" class="message-row" [ngClass]="msg.sender">
+          <div class="message-sender">{{ msg.sender === 'bot' ? 'TurisBot' : 'Alan' }}</div>
+          <div class="message-bubble">
+            {{ msg.text }}
+          </div>
+          <div class="message-time">{{ msg.time | date:'shortTime' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="chatbot-footer">
+      <input type="text" class="chat-input" [(ngModel)]="userMessage" (keyup.enter)="sendMessage()" placeholder="Escribe un mensaje...">
+      <div class="footer-actions">
+        <button class="btn-advisor" (click)="contactAdvisor()" title="Contactar Asesor">👨‍💼</button>
+        <button class="btn-send" (click)="sendMessage()" title="Enviar">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
