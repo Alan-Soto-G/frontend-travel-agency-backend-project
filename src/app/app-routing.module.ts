@@ -176,6 +176,19 @@ const routes: Routes = [
         }
       },
       {
+        path: 'shopping-cart',
+        loadComponent: () => import('./pages/shopping-cart/shopping-cart.component').then((m) => m.ShoppingCartComponent),
+        data: {
+          apiUrl: '/api/cart',
+          method: 'GET'
+        }
+      },
+          {
+      path: 'payment-status',
+      loadComponent: () => import('./pages/payment-status/payment-status.component').then((m)=> m.PaymentStatusComponent),
+      // Sin guard - necesita ser accesible después del pago
+    },
+          {
         path: 'transport-itineraries',
         loadComponent: () => import('./pages/business/transport-itineraries/transport-itineraries.component').then((m) => m.TransportItinerariesComponent),
         canActivate: [permissionGuard],

@@ -31,7 +31,7 @@ export class InvoicesComponent implements OnInit {
 
   itemsData: string[] = [
     'id',
-    'fee.trip.name',
+    'fee.id',
     'bankCard.cardNumber',
     'invoiceNumber',
     'totalAmount',

@@ -61,6 +61,17 @@
             <td *ngFor="let col of itemsData" [attr.data-label]="headTable[itemsData.indexOf(col)]">
               {{ getNestedValue(row, col) }}
             </td>
+                
+            <td data-label="Carrito" *ngIf="showCartButton">
+              <button 
+                class="btn btn-sm btn-cart" 
+                (click)="handleCartClick(row)"
+                [disabled]="row.status !== 'active' || row.availableSeats === 0"
+                title="Agregar al carrito">
+                <span class="d-none d-md-inline">🛒 Carrito</span>
+                <span class="d-md-none">🛒</span>
+              </button>
+            </td>
             <td data-label="Editar">
               <button class="btn btn-sm btn-info" (click)="handleActionClick('edit', row._id || row.id)">
                 <span class="d-none d-md-inline">Edit</span>
