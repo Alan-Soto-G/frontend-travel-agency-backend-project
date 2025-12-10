@@ -1,0 +1,92 @@
+<div class="gps-tracker-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="header-icon">🗺️</div>
+      <div class="header-text">
+        <h1>Rastreo GPS en Tiempo Real</h1>
+        <p>{{gpsDevices().length}} vehículos en línea</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sidebar de controles -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Vehículos</h2>
+      <button class="btn-view-all" (click)="centerAllVehicles()" title="Ver todos los vehículos">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        </svg>
+        <span>Ver Todos</span>
+      </button>
+    </div>
+    
+    <div class="vehicle-grid">
+      @for (gps of gpsDevices(); track gps.id) {
+        @if (gps.latitude && gps.longitude) {
+          <div 
+            class="vehicle-card"
+            [class.online]="gps.connectionStatus === 'online'"
+            [class.offline]="gps.connectionStatus === 'offline'"
+            (click)="centerOnVehicle(gps.vehicleId)">
+            
+            <div class="vehicle-card-header">
+              <div class="vehicle-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path>
+                  <circle cx="7" cy="17" r="2"></circle>
+                  <circle cx="17" cy="17" r="2"></circle>
+                </svg>
+              </div>
+              <span class="vehicle-status-badge" [style.background-color]="getColorByStatus(gps.connectionStatus)"></span>
+            </div>
+            
+            <div class="vehicle-card-body">
+              <h3 class="vehicle-plate">{{ getVehiclePlate(gps.vehicleId) }}</h3>
+              <div class="vehicle-details">
+                <div class="detail-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                    <line x1="6" y1="1" x2="6" y2="4"></line>
+                    <line x1="10" y1="1" x2="10" y2="4"></line>
+                    <line x1="14" y1="1" x2="14" y2="4"></line>
+                  </svg>
+                  <span>{{ gps.speed ? gps.speed + ' km/h' : '0 km/h' }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="vehicle-card-footer">
+              <span class="status-text">{{ gps.connectionStatus === 'online' ? 'En línea' : 'Fuera de línea' }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </aside>
+  
+  <!-- Mapa -->
+  <main class="map-wrapper">
+    <div id="map" class="map-container"></div>
+    
+    <!-- Leyenda flotante -->
+    <div class="legend-float">
+      <div class="legend-item">
+        <span class="legend-dot" style="background-color: #10B981;"></span>
+        <span>En línea</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background-color: #6B7280;"></span>
+        <span>Fuera de línea</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background-color: #EF4444;"></span>
+        <span>Error</span>
+      </div>
+    </div>
+  </main>
+</div>

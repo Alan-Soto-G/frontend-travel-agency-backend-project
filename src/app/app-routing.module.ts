@@ -47,6 +47,10 @@ const routes: Routes = [
         loadComponent: () => import('./pages/calendar/calendar.component').then((c) => c.CalendarComponent)
       },
       {
+        path: 'gps-tracker',
+        loadComponent: () => import('./components/gps-tracker/gps-tracker.component').then((c) => c.GpsTrackerComponent)
+      },
+      {
         path: 'users',
         loadComponent: () => import('./pages/security/users/users.component').then((m) => m.UsersComponent),
         canActivate: [permissionGuard],
