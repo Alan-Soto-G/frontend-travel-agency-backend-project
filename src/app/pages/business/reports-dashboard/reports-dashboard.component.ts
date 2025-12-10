@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChildren, QueryList, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
@@ -20,10 +20,13 @@ Chart.register(...registerables);
   templateUrl: './reports-dashboard.component.html',
   styleUrls: ['./reports-dashboard.component.scss']
 })
-export class ReportsDashboardComponent implements OnInit {
+export class ReportsDashboardComponent implements OnInit, OnDestroy {
+  @ViewChildren(BaseChartDirective) charts?: QueryList<BaseChartDirective>;
+
   statistics: any;
   loading = true;
   error: string | null = null;
+  private resizeTimeout: any;
 
   // Configuración de gráfica de líneas (Histórico de Ingresos)
   lineChartData: ChartConfiguration<'line'>['data'] = {
@@ -33,7 +36,8 @@ export class ReportsDashboardComponent implements OnInit {
 
   lineChartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
+    aspectRatio: 2,
     plugins: {
       legend: {
         display: true,
@@ -50,6 +54,9 @@ export class ReportsDashboardComponent implements OnInit {
           callback: (value) => `$${Number(value).toLocaleString('es-CO')}`
         }
       }
+    },
+    onResize: (chart) => {
+      chart.update('none');
     }
   };
 
@@ -61,7 +68,8 @@ export class ReportsDashboardComponent implements OnInit {
 
   barChartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
+    aspectRatio: 2.5,
     plugins: {
       legend: {
         display: false
@@ -74,6 +82,9 @@ export class ReportsDashboardComponent implements OnInit {
           precision: 0
         }
       }
+    },
+    onResize: (chart) => {
+      chart.update('none');
     }
   };
 
@@ -85,7 +96,8 @@ export class ReportsDashboardComponent implements OnInit {
 
   pieChartOptions: ChartConfiguration<'pie'>['options'] = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
+    aspectRatio: 1.5,
     plugins: {
       legend: {
         position: 'bottom',
@@ -116,6 +128,9 @@ export class ReportsDashboardComponent implements OnInit {
           }
         }
       }
+    },
+    onResize: (chart) => {
+      chart.update('none');
     }
   };
 
@@ -123,6 +138,40 @@ export class ReportsDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboardData();
+  }
+
+  ngOnDestroy(): void {
+    if (this.resizeTimeout) {
+      clearTimeout(this.resizeTimeout);
+    }
+  }
+
+  /**
+   * Maneja el evento de resize de la ventana con debounce
+   * para actualizar las gráficas correctamente
+   */
+  @HostListener('window:resize', ['$event'])
+  onResize(event?: Event): void {
+    if (this.resizeTimeout) {
+      clearTimeout(this.resizeTimeout);
+    }
+
+    this.resizeTimeout = setTimeout(() => {
+      this.updateCharts();
+    }, 250);
+  }
+
+  /**
+   * Actualiza todas las gráficas para que se redimensionen correctamente
+   */
+  private updateCharts(): void {
+    if (this.charts) {
+      this.charts.forEach((chart) => {
+        if (chart.chart) {
+          chart.chart.resize();
+        }
+      });
+    }
   }
 
   /**
