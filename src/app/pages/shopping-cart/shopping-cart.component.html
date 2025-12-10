@@ -1,0 +1,333 @@
+<div class="cart-container">
+  <div class="max-width-container">
+    <!-- Header -->
+    <div class="cart-header">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="title">Carrito de Compras</h1>
+            <p class="subtitle">{{ cartCount }} {{ cartCount === 1 ? 'viaje seleccionado' : 'viajes seleccionados' }}</p>
+          </div>
+        </div>
+        <button class="continue-shopping-btn" (click)="continuesShopping()">
+          Continuar Comprando
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando tu carrito...</p>
+    </div>
+
+    <div *ngIf="!loading" class="cart-grid">
+      <!-- Cart Items -->
+      <div class="cart-items-section">
+        <!-- Empty Cart -->
+        <div *ngIf="cartItems.length === 0" class="empty-cart">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <h3 class="empty-title">Tu carrito está vacío</h3>
+          <p class="empty-description">¡Explora nuestros destinos y comienza tu aventura!</p>
+        </div>
+
+        <!-- Cart Items List -->
+        <div *ngFor="let item of cartItems" class="cart-item">
+          <!-- ✅ Badges reubicados en header -->
+          <div class="item-content">
+            <!-- Image -->
+            <div class="item-image-wrapper">
+              <img [src]="getImageUrl(item.trip.destination)" [alt]="item.trip.destination" class="item-image">
+            </div>
+
+            <!-- Content -->
+            <div class="item-details">
+              <div class="item-header">
+                <div class="item-title-section">
+                  <h3 class="item-destination">{{ item.trip.destination }}</h3>
+                  <p class="item-package">{{ item.trip.name }}</p>
+                  <p *ngIf="item.trip.description" class="item-description">{{ item.trip.description }}</p>
+                </div>
+                
+                <!-- ✅ BADGES Y BOTÓN JUNTOS EN COLUMNA -->
+                <div class="header-actions">
+                  <!-- Badges en fila -->
+                  <div class="badges-row">
+                    <span class="status-badge" [class.expired]="isExpired(item.trip.endDate)">
+                      {{ isExpired(item.trip.endDate) ? 'Finalizado' : item.trip.status }}
+                    </span>
+
+                    <span class="payment-status-badge" [ngClass]="getPaymentStatusBadge(item).class">
+                      {{ getPaymentStatusBadge(item).text }}
+                    </span>
+                  </div>
+                  
+                  <!-- Botón de eliminar -->
+                  <button class="delete-btn" 
+                          (click)="removeItem(item.id!)" 
+                          [disabled]="!canRemoveItem(item)"
+                          [title]="canRemoveItem(item) ? 'Eliminar del carrito' : 'No se puede eliminar (tiene pagos activos)'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 6h18"></path>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="item-info">
+                <div class="info-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span>{{ formatDate(item.trip.startDate) }}</span>
+                </div>
+                <div class="info-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <span>{{ getTripDuration(item.trip.startDate, item.trip.endDate) }}</span>
+                </div>
+                <div class="info-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <span>{{ item.trip.availableSeats }} asientos disponibles</span>
+                </div>
+              </div>
+
+              <!-- Travelers Counter -->
+              <div class="travelers-section">
+                <label class="travelers-label">Número de viajeros:</label>
+                <div class="quantity-controls">
+                  <button class="quantity-btn" 
+                          (click)="updateTravelers(item.id!, item.travelers - 1)"
+                          [disabled]="item.travelers <= 1 || item.paymentStatus === 'partial' || item.paymentStatus === 'completed'"
+                          [title]="item.paymentStatus === 'partial' || item.paymentStatus === 'completed' ? 'No se puede modificar (tiene pagos activos)' : 'Disminuir viajeros'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
+                  <span class="quantity">{{ item.travelers }}</span>
+                  <button class="quantity-btn" 
+                          (click)="updateTravelers(item.id!, item.travelers + 1)"
+                          [disabled]="item.travelers >= (item.trip.availableSeats + item.travelers) || item.paymentStatus === 'partial' || item.paymentStatus === 'completed'"
+                          [title]="item.paymentStatus === 'partial' || item.paymentStatus === 'completed' ? 'No se puede modificar (tiene pagos activos)' : 'Aumentar viajeros'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
+                </div>
+                <p class="available-seats-hint" *ngIf="item.paymentStatus !== 'partial' && item.paymentStatus !== 'completed'">
+                  Cupos disponibles: {{ item.trip.availableSeats }} • Tu reserva: {{ item.travelers }} • Máximo total: {{ item.trip.availableSeats + item.travelers }}
+                </p>
+                <p class="available-seats-hint locked" *ngIf="item.paymentStatus === 'partial' || item.paymentStatus === 'completed'">
+                  🔒 No se puede modificar (tiene pagos activos)
+                </p>
+              </div>
+
+              <div class="item-footer">
+                <div class="price-section">
+                  <p class="item-total">${{ (item.trip.price * item.travelers).toLocaleString('es-CO') }}</p>
+                  <p class="item-unit-price">${{ item.trip.price.toLocaleString('es-CO') }} por persona</p>
+                  <p class="item-calculation">{{ item.travelers }} {{ item.travelers === 1 ? 'viajero' : 'viajeros' }}</p>
+                </div>
+              </div>
+
+              <!-- ✅ Selector de Cuotas - Mejorado para primera vez -->
+              <div class="trip-payment-options" *ngIf="canPayTrip(item) && item.paymentStatus !== 'partial'">
+                <h4 class="trip-payment-title">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                  </svg>
+                  Plan de Pago para este viaje
+                </h4>
+
+                <!-- Selector Individual -->
+                <div class="custom-select" [class.open]="isDropdownOpen(item.id!)" (click)="toggleDropdown(item.id!)">
+                  <div class="select-trigger">
+                    <div class="selected-option" *ngIf="getSelectedFeeOption(item.id!)">
+                      <div class="option-main">
+                        <span class="option-text">{{ getSelectedFeeOption(item.id!)!.label }}</span>
+                        <span *ngIf="getSelectedFeeOption(item.id!)!.interest > 0" class="interest-tag">
+                          +{{ getSelectedFeeOption(item.id!)!.interest }}%
+                        </span>
+                        <span *ngIf="getSelectedFeeOption(item.id!)!.interest === 0 && getSelectedInstallments(item.id!) === 1" class="free-badge">
+                          Sin interés
+                        </span>
+                      </div>
+                      <!-- ✅ Mostrar precio claramente -->
+                      <div class="option-price-display">
+                        <span *ngIf="getSelectedInstallments(item.id!) === 1" class="price-highlight">
+                          ${{ getItemInstallmentAmount(item).toLocaleString('es-CO') }}
+                        </span>
+                        <span *ngIf="getSelectedInstallments(item.id!) > 1" class="price-highlight">
+                          {{ getSelectedInstallments(item.id!) }} × ${{ getItemInstallmentAmount(item).toLocaleString('es-CO') }}
+                        </span>
+                      </div>
+                    </div>
+                    <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </div>
+
+                  <div class="select-options" *ngIf="isDropdownOpen(item.id!)">
+                    <div *ngFor="let option of feeOptions" 
+                         class="option-item"
+                         [class.selected]="getSelectedInstallments(item.id!) === option.installments"
+                         (click)="selectInstallment(item.id!, option.installments)">
+                      
+                      <div class="option-content">
+                        <div class="option-header">
+                          <span class="option-label">{{ option.label }}</span>
+                          <span *ngIf="option.interest > 0" class="interest-badge">
+                            +{{ option.interest }}%
+                          </span>
+                          <span *ngIf="option.interest === 0" class="free-badge">
+                            Sin interés
+                          </span>
+                        </div>
+                        
+                        <div class="option-pricing">
+                          <span *ngIf="option.installments === 1" class="fee-amount">
+                            ${{ (getItemTotal(item) * (1 + option.interest / 100)).toLocaleString('es-CO') }}
+                          </span>
+                          <span *ngIf="option.installments > 1" class="fee-amount">
+                            {{ option.installments }} cuotas de ${{ ((getItemTotal(item) * (1 + option.interest / 100)) / option.installments).toLocaleString('es-CO') }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <svg *ngIf="getSelectedInstallments(item.id!) === option.installments" class="check-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ✅ MENSAJE para pagos parciales -->
+              <div class="partial-payment-info" *ngIf="item.paymentStatus === 'partial'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div>
+                  <p><strong>Plan de Pagos en Curso</strong></p>
+                  <p *ngIf="hasFeesLoaded(item)">{{ getFeesDetails(item) }}</p>
+                  <p *ngIf="!hasFeesLoaded(item)">Has pagado {{ item.paidInstallments }} de {{ item.totalInstallments }} cuotas.</p>
+                  <p class="next-payment">Monto de la próxima cuota: <strong>${{ getItemInstallmentAmount(item).toLocaleString('es-CO') }}</strong></p>
+                </div>
+              </div>
+
+              <!-- Sección de Pago Individual -->
+              <div class="item-payment-section">
+                <div class="payment-summary">
+                  <div class="payment-info">
+                    <div class="total-badge">
+                      <span class="total-label">Total de este viaje:</span>
+                      <span class="total-amount">${{ getItemTotal(item).toLocaleString('es-CO') }}</span>
+                    </div>
+                    <div class="installment-info" *ngIf="getSelectedFeeOption(item.id!)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                      </svg>
+                      <span *ngIf="getSelectedInstallments(item.id!) === 1">
+                        Pago único: <strong>${{ getItemInstallmentAmount(item).toLocaleString('es-CO') }}</strong>
+                      </span>
+                      <span *ngIf="getSelectedInstallments(item.id!) > 1">
+                        {{ getSelectedInstallments(item.id!) }} cuotas de <strong>${{ getItemInstallmentAmount(item).toLocaleString('es-CO') }}</strong>
+                        <span class="interest-tag" *ngIf="getSelectedFeeOption(item.id!)!.interest > 0">
+                          +{{ getSelectedFeeOption(item.id!)!.interest }}%
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <button class="pay-trip-btn" 
+                          (click)="payIndividualTrip(item)"
+                          [disabled]="!canPayTrip(item)"
+                          [ngClass]="{ 
+                            'btn-disabled': !canPayTrip(item),
+                            'btn-completed': item.paymentStatus === 'completed',
+                            'btn-processing': item.paymentStatus === 'processing'
+                          }">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                      <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg>
+                    {{ getPaymentButtonText(item) }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-section">
+        <div class="summary-card">
+          <h2 class="summary-title">Resumen del Pedido</h2>
+          
+          <div class="summary-details">
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span class="summary-value">${{ subtotal.toLocaleString('es-CO') }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Impuestos (12%)</span>
+              <span class="summary-value">${{ tax.toLocaleString('es-CO') }}</span>
+            </div>
+            <div class="summary-total">
+              <span>Total</span>
+              <span class="total-value">${{ total.toLocaleString('es-CO') }}</span>
+            </div>
+          </div>
+
+          <!-- Info Card -->
+          <div class="info-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <p>Cada viaje se paga de forma independiente. Selecciona el plan de cuotas en cada uno.</p>
+          </div>
+
+          <div class="benefits-section">
+            <p class="benefits-title">✈️ Beneficios incluidos:</p>
+            <ul class="benefits-list">
+              <li>• Cancelación gratuita 48h antes</li>
+              <li>• Seguro de viaje incluido</li>
+              <li>• Soporte 24/7 durante tu viaje</li>
+              <li>• Garantía de mejor precio</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

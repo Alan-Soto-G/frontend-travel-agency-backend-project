@@ -47,6 +47,10 @@ const routes: Routes = [
         loadComponent: () => import('./pages/calendar/calendar.component').then((c) => c.CalendarComponent)
       },
       {
+        path: 'gps-tracker',
+        loadComponent: () => import('./components/gps-tracker/gps-tracker.component').then((c) => c.GpsTrackerComponent)
+      },
+      {
         path: 'users',
         loadComponent: () => import('./pages/security/users/users.component').then((m) => m.UsersComponent),
         canActivate: [permissionGuard],
@@ -176,6 +180,19 @@ const routes: Routes = [
         }
       },
       {
+        path: 'shopping-cart',
+        loadComponent: () => import('./pages/shopping-cart/shopping-cart.component').then((m) => m.ShoppingCartComponent),
+        data: {
+          apiUrl: '/api/cart',
+          method: 'GET'
+        }
+      },
+          {
+      path: 'payment-status',
+      loadComponent: () => import('./pages/payment-status/payment-status.component').then((m)=> m.PaymentStatusComponent),
+      // Sin guard - necesita ser accesible después del pago
+    },
+          {
         path: 'transport-itineraries',
         loadComponent: () => import('./pages/business/transport-itineraries/transport-itineraries.component').then((m) => m.TransportItinerariesComponent),
         canActivate: [permissionGuard],

@@ -29,6 +29,9 @@ export class ClientService {
   deleteClient(id: string): Observable<void> {
     return this.http.delete<void>(`${this.businessApiUrl}/${id}`);
   }
+
+  // ✅ NUEVO MÉTODO
+  getClientIdByUser(): Observable<any> {
+    return this.http.get<any>(`${this.businessApiUrl}/by-user`);
+  }
 }
-
-

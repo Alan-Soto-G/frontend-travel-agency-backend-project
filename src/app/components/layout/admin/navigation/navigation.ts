@@ -208,6 +208,14 @@ export const NavigationItems: NavigationItem[] = [
           breadcrumbs: false
         }
       ]
+    },
+    {
+      id: 'maps',
+      title: 'Maps',
+      type: 'item',
+      url: '/gps-tracker',
+      icon: 'ti ti-map-pin',
+      breadcrumbs: false
     }
 
     ]

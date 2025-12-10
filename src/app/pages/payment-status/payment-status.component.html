@@ -1,0 +1,97 @@
+<div class="payment-status-container">
+  <div class="status-card">
+    
+    <!-- ✅ LOADING STATE -->
+    <div *ngIf="loading" class="status-content loading">
+      <div class="spinner"></div>
+      <h2>Procesando tu pago...</h2>
+      <p>Verificando la transacción y creando tus cuotas...</p>
+    </div>
+
+    <!-- ✅ SUCCESS STATE -->
+    <div *ngIf="!loading && success" class="status-content success">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      
+      <h2>¡Pago Exitoso!</h2>
+      <p class="success-message">Tu reserva ha sido confirmada correctamente</p>
+
+      <div class="payment-details">
+        <div class="detail-row">
+          <span class="label">Referencia de pago:</span>
+          <span class="value">{{ refPayco }}</span>
+        </div>
+        <div class="detail-row" *ngIf="transactionId">
+          <span class="label">ID de transacción:</span>
+          <span class="value">{{ transactionId }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Número de cuotas:</span>
+          <span class="value">{{ installments }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Total pagado:</span>
+          <span class="value amount">${{ totalAmount.toLocaleString('es-CO') }}</span>
+        </div>
+      </div>
+
+      <div class="fees-info" *ngIf="installments > 1">
+        <div class="info-icon">ℹ️</div>
+        <div class="info-text">
+          <strong>Plan de cuotas creado</strong>
+          <p>Se ha creado tu plan de {{ installments }} cuotas. La primera cuota ya está pagada y las {{ installments - 1 }} restantes están pendientes.</p>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn-primary" (click)="viewMyInstallments()" *ngIf="installments > 1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+          Ver Mis Cuotas
+        </button>
+        
+        <button class="btn-secondary" (click)="viewMyBookings()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          Ver Mis Reservas
+        </button>
+        
+        <button class="btn-ghost" (click)="goToDashboard()">
+          Volver al Inicio
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ ERROR STATE -->
+    <div *ngIf="!loading && !success" class="status-content error">
+      <div class="error-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+      </div>
+      
+      <h2>Pago No Completado</h2>
+      <p class="error-message">{{ error || 'Hubo un problema procesando tu pago' }}</p>
+
+      <div class="error-actions">
+        <button class="btn-primary" (click)="goToDashboard()">
+          Volver al Carrito
+        </button>
+        <button class="btn-secondary" (click)="goToDashboard()">
+          Ir al Inicio
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

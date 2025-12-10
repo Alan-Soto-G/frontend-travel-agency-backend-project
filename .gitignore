@@ -118,3 +118,7 @@ src/environments/environment.ts
 
 add
 
+
+# Carpeta de documentación y archivos temporales
+add/
+
