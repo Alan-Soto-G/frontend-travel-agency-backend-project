@@ -1,0 +1,35 @@
+<div class="container mt-5 pt-5">
+  <h2 class="mb-4">Resultados de Búsqueda</h2>
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && trips.length === 0" class="alert alert-info">
+    No se encontraron viajes con los criterios seleccionados.
+  </div>
+
+  <div class="row" *ngIf="!loading && trips.length > 0">
+    <div class="col-md-4 mb-4" *ngFor="let trip of trips">
+      <div class="card h-100 shadow-sm">
+        <!-- Placeholder image if no image provided -->
+        <img [src]="trip.imageUrl || 'assets/images/authentication/img-auth-3.png'" class="card-img-top" alt="Trip Image" style="height: 200px; object-fit: cover;">
+        <div class="card-body">
+          <h5 class="card-title">{{ trip.destination }}</h5>
+          <p class="card-text text-muted">
+            <i class="ti ti-calendar"></i> {{ trip.startDate | date }} - {{ trip.endDate | date }}
+          </p>
+          <p class="card-text">
+            {{ trip.description || 'Disfruta de este increíble destino.' }}
+          </p>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="h5 text-primary mb-0">${{ trip.price }}</span>
+            <button class="btn btn-outline-primary btn-sm">Ver Detalles</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

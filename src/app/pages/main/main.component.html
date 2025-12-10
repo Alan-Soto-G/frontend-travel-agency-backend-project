@@ -11,7 +11,12 @@
           <div class="input-group bg-white rounded p-2 h-100">
             <span class="input-group-text border-0 bg-transparent"><i class="ti ti-map-pin text-secondary"></i></span>
             <div class="form-floating flex-grow-1">
-              <input type="text" class="form-control border-0 p-0 pt-3" id="origin" placeholder="Ciudad de origen" value="Ciudad de origen">
+              <select class="form-select border-0 p-0 pt-3 fw-bold text-dark" id="origin" [(ngModel)]="origin" style="box-shadow: none;">
+                <option value="" disabled selected>Selecciona origen</option>
+                <option *ngFor="let mun of municipalities" [value]="mun.name" [disabled]="mun.name === destination">
+                  {{ mun.name }}
+                </option>
+              </select>
               <label for="origin" class="text-muted small">ORIGEN</label>
             </div>
           </div>
@@ -20,25 +25,30 @@
           <div class="input-group bg-white rounded p-2 h-100">
             <span class="input-group-text border-0 bg-transparent"><i class="ti ti-map-pin text-secondary"></i></span>
             <div class="form-floating flex-grow-1">
-              <input type="text" class="form-control border-0 p-0 pt-3" id="destination" placeholder="Ingresa hacia donde...">
+              <select class="form-select border-0 p-0 pt-3 fw-bold text-dark" id="destination" [(ngModel)]="destination" style="box-shadow: none;">
+                <option value="" disabled selected>Selecciona destino</option>
+                <option *ngFor="let mun of municipalities" [value]="mun.name" [disabled]="mun.name === origin">
+                  {{ mun.name }}
+                </option>
+              </select>
               <label for="destination" class="text-muted small">DESTINO</label>
             </div>
           </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           <div class="input-group bg-white rounded p-2 h-100">
             <span class="input-group-text border-0 bg-transparent"><i class="ti ti-calendar text-secondary"></i></span>
             <div class="form-floating flex-grow-1">
-              <input type="date" class="form-control border-0 p-0 pt-3" id="entry">
+              <input type="date" class="form-control border-0 p-0 pt-3 fw-bold text-dark" id="entry" [(ngModel)]="startDate">
               <label for="entry" class="text-muted small">ENTRADA</label>
             </div>
           </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           <div class="input-group bg-white rounded p-2 h-100">
             <span class="input-group-text border-0 bg-transparent"><i class="ti ti-calendar text-secondary"></i></span>
             <div class="form-floating flex-grow-1">
-              <input type="date" class="form-control border-0 p-0 pt-3" id="exit">
+              <input type="date" class="form-control border-0 p-0 pt-3 fw-bold text-dark" id="exit" [(ngModel)]="endDate">
               <label for="exit" class="text-muted small">SALIDA</label>
             </div>
           </div>
@@ -46,7 +56,7 @@
       </div>
 
       <div class="row g-2 mt-2">
-        <div class="col-md-4">
+        <div class="col-md-6">
           <div class="bg-white rounded p-3 d-flex justify-content-between align-items-center shadow-sm">
             <div class="d-flex align-items-center">
               <div class="avtar avtar-s bg-transparent text-secondary me-3">
@@ -54,7 +64,7 @@
               </div>
               <div>
                 <small class="text-muted d-block fw-bold">HABITACIONES</small>
-                <strong class="fs-5">{{ rooms }}</strong>
+                <strong class="fs-5" style="color: black !important;">{{ rooms }}</strong>
               </div>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -67,7 +77,7 @@
             </div>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
           <div class="bg-white rounded p-3 d-flex justify-content-between align-items-center shadow-sm">
             <div class="d-flex align-items-center">
               <div class="avtar avtar-s bg-transparent text-secondary me-3">
@@ -75,7 +85,7 @@
               </div>
               <div>
                 <small class="text-muted d-block fw-bold">ADULTOS</small>
-                <strong class="fs-5">{{ adults }}</strong>
+                <strong class="fs-5" style="color: black !important;">{{ adults }}</strong>
               </div>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -88,31 +98,10 @@
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="bg-white rounded p-3 d-flex justify-content-between align-items-center shadow-sm">
-            <div class="d-flex align-items-center">
-              <div class="avtar avtar-s bg-transparent text-secondary me-3">
-                <i class="ti ti-mood-kid fs-4"></i>
-              </div>
-              <div>
-                <small class="text-muted d-block fw-bold">NIÑOS</small>
-                <strong class="fs-5">{{ children }}</strong>
-              </div>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <button class="btn btn-icon btn-light-secondary rounded-circle p-2" (click)="decrement('children')">
-                <i class="ti ti-minus"></i>
-              </button>
-              <button class="btn btn-icon btn-light-secondary rounded-circle p-2" (click)="increment('children')">
-                <i class="ti ti-plus"></i>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
       
-            <div class="text-end mt-3">
-        <button class="btn btn-danger rounded-pill px-4">
+      <div class="text-end mt-3">
+        <button class="btn btn-danger rounded-pill px-4" (click)="search()">
           <i class="ti ti-search me-1"></i> Buscar
         </button>
       </div>

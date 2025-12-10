@@ -223,6 +223,10 @@ const routes: Routes = [
         path: 'main',
         loadComponent: () => import('./pages/main/main.component').then((c) => c.MainComponent)
         // Sin guard de permisos - acceso libre para usuarios autenticados
+      },
+      {
+        path: 'search-results',
+        loadComponent: () => import('./pages/search-results/search-results.component').then((c) => c.SearchResultsComponent)
       }
     ]
   },

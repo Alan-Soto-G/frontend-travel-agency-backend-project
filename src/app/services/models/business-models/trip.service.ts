@@ -10,8 +10,8 @@ export class TripService {
 
   constructor(private http: HttpClient) {}
 
-  getTrips(): Observable<Trip[]> {
-    return this.http.get<Trip[]>(this.businessApiUrl);
+  getTrips(params?: any): Observable<any> {
+    return this.http.get<any>(this.businessApiUrl, { params });
   }
 
   getTripById(id: string): Observable<Trip> {
