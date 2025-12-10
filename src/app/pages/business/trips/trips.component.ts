@@ -117,8 +117,7 @@ export class TripsComponent implements OnInit {
         { label: 'Activo', value: 'active' },
         { label: 'Lleno', value: 'full' },
         { label: 'Completado', value: 'completed' },
-        { label: 'Cancelado', value: 'cancelled' },
-        { label: 'Inactivo', value: 'inactive' },
+        { label: 'Cancelado', value: 'cancelled' }
       ],
       required: true,
     },
@@ -251,15 +250,15 @@ export class TripsComponent implements OnInit {
     this.tripClientService.createOrder(orderData).subscribe({
       next: (response) => {
         console.log('✅ Orden creada:', response);
-        
+
         // Agregar al carrito local
         this.cartService.addToCart(trip, 1);
-        
+
         alert(`✅ "${trip.name}" agregado al carrito correctamente`);
       },
       error: (err) => {
         console.error('❌ Error al crear orden:', err);
-        
+
         if (err.status === 401) {
           alert('⚠️ Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
         } else if (err.status === 400) {
