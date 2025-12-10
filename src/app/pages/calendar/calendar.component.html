@@ -5,17 +5,7 @@
         <div class="card-body p-5">
           <h2 class="fw-bold mb-4 text-center">Agendar Cita</h2>
 
-          <!-- Not Connected State -->
-          <div *ngIf="!isConnected" class="text-center py-5">
-            <i class="ti ti-calendar-off fs-1 text-muted mb-3"></i>
-            <p class="mb-4">Para agendar una cita, necesitamos acceso a tu Google Calendar para verificar disponibilidad.</p>
-            <button class="btn btn-primary btn-lg rounded-pill" (click)="connectGoogleCalendar()">
-              <i class="ti ti-brand-google me-2"></i> Conectar Google Calendar
-            </button>
-          </div>
-
-          <!-- Connected State -->
-          <div *ngIf="isConnected" class="row">
+          <div class="row">
             <!-- Calendar View -->
             <div class="col-md-7 border-end">
               <div class="d-flex justify-content-between align-items-center mb-3">
@@ -33,23 +23,13 @@
                 
                 <div 
                   *ngFor="let day of calendarDays" 
-                  class="calendar-day p-1 rounded-3 position-relative d-flex flex-column"
+                  class="calendar-day p-1 rounded-3 position-relative d-flex flex-column justify-content-center align-items-center"
                   [class.disabled]="day.disabled"
                   [class.today]="day.isToday"
                   [class.selected]="selectedDate === day.date"
                   (click)="selectDate(day)">
                   
-                  <span *ngIf="day.day" class="day-number align-self-center mb-1">{{ day.day }}</span>
-                  
-                  <!-- Event Bars -->
-                  <div class="events-list w-100" *ngIf="day.events && day.events.length > 0">
-                    <div *ngFor="let event of day.events | slice:0:2" class="event-bar text-truncate">
-                      {{ event.summary || '(Sin título)' }}
-                    </div>
-                    <div *ngIf="day.events.length > 2" class="more-events text-center">
-                      +{{ day.events.length - 2 }} más
-                    </div>
-                  </div>
+                  <span *ngIf="day.day" class="day-number">{{ day.day }}</span>
                 </div>
               </div>
             </div>
@@ -62,29 +42,7 @@
               </div>
 
               <div *ngIf="selectedDate">
-                <!-- User's Events -->
-                <div class="mb-4">
-                  <h5 class="fw-bold mb-3 text-purple">Tu Agenda</h5>
-                  <div *ngIf="selectedDayEvents.length === 0" class="text-muted small fst-italic">
-                    No tienes eventos programados para este día.
-                  </div>
-                  <div class="list-group list-group-flush">
-                    <div *ngFor="let event of selectedDayEvents" class="list-group-item px-0 py-2 border-0 d-flex align-items-start">
-                      <div class="me-3 text-center" style="min-width: 60px;">
-                        <small class="d-block fw-bold text-dark">{{ (event.start.dateTime | date:'shortTime') || 'Todo el día' }}</small>
-                        <small class="d-block text-muted" style="font-size: 0.75rem;" *ngIf="event.end.dateTime">{{ event.end.dateTime | date:'shortTime' }}</small>
-                      </div>
-                      <div class="border-start border-3 border-purple ps-3">
-                        <h6 class="mb-0 fw-bold text-dark">{{ event.summary || '(Sin título)' }}</h6>
-                        <small class="text-muted" *ngIf="event.location"><i class="ti ti-map-pin me-1"></i>{{ event.location }}</small>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <hr class="my-4">
-
-                <h5 class="fw-bold mb-3">Horarios disponibles para Cita</h5>
+                <h5 class="fw-bold mb-3">Horarios disponibles</h5>
                 <p class="small text-muted mb-3">Fecha: {{ selectedDate | date:'fullDate' }}</p>
 
                 <div class="d-flex flex-wrap gap-2 mb-4 slots-container">
@@ -100,21 +58,14 @@
                   </p>
                 </div>
 
-                <div *ngIf="selectedTime">
-                  <label for="summary" class="form-label fw-bold">Resumen</label>
-                  <textarea id="summary" class="form-control mb-3" rows="3" [(ngModel)]="summary" placeholder="Motivo de la cita..."></textarea>
-                  
-                  <button 
-                    class="btn btn-success w-100 rounded-pill py-2" 
-                    [disabled]="!summary"
-                    (click)="scheduleAppointment()">
+                <div class="d-grid" *ngIf="selectedTime">
+                  <button class="btn btn-primary rounded-pill py-2" (click)="scheduleAppointment()">
                     Confirmar Cita
                   </button>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

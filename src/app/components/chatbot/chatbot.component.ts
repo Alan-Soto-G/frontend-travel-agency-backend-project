@@ -134,7 +134,7 @@ export class ChatbotComponent implements AfterViewInit, OnDestroy, OnInit {
 
     const body = { prompt: text, option: this.topic };
 
-    this.http.post<any>(environment.chatbotWebhookUrl, body, { headers }).subscribe({
+    this.http.post<any>(`${environment.webhookUrl}/chat-bot`, body, { headers }).subscribe({
       next: (res) => {
         let botText = '';
 

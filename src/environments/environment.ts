@@ -10,7 +10,7 @@ export const environment = {
   apiUrl: 'http://localhost:8081/api/',
 
   businessApiUrl: 'http://localhost:3333/api/',
-  chatbotWebhookUrl: 'https://precongested-cherise-shieldlessly.ngrok-free.dev/webhook/chat-bot',
+  webhookUrl: 'https://precongested-cherise-shieldlessly.ngrok-free.dev/webhook',
   msSecurity: 'http://localhost:8081',
 
   firebase: {

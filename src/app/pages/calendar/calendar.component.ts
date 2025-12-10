@@ -4,21 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CookieService } from 'ngx-cookie-service';
 import { AuthService } from '../../services/authentication/auth.service';
-
-interface GoogleEvent {
-  id?: string;
-  summary?: string;
-  start: { dateTime?: string; date?: string };
-  end: { dateTime?: string; date?: string };
-  location?: string;
-}
+import { environment } from '../../../environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 interface CalendarDay {
   day: number | string;
   date?: string;
   disabled: boolean;
   isToday?: boolean;
-  events?: GoogleEvent[];
 }
 
 @Component({
@@ -29,13 +22,10 @@ interface CalendarDay {
   styleUrls: ['./calendar.component.scss']
 })
 export class CalendarComponent implements OnInit {
-  isConnected = false;
   selectedDate: string = '';
   selectedTime: string = '';
   summary: string = '';
   availableSlots: string[] = [];
-  events: GoogleEvent[] = [];
-  selectedDayEvents: GoogleEvent[] = [];
   
   // Calendar View Properties
   currentMonth: Date = new Date();
@@ -48,28 +38,12 @@ export class CalendarComponent implements OnInit {
   constructor(
     private http: HttpClient, 
     private authService: AuthService,
-    private cookieService: CookieService
+    private cookieService: CookieService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
-    this.checkGoogleConnection();
     this.generateCalendar();
-  }
-
-  checkGoogleConnection() {
-    const token = this.cookieService.get('calendar_token');
-    if (token) {
-      this.isConnected = true;
-      this.fetchMonthEvents();
-    }
-  }
-
-  async connectGoogleCalendar() {
-    const success = await this.authService.linkGoogleCalendar();
-    if (success) {
-      this.isConnected = true;
-      this.fetchMonthEvents();
-    }
   }
 
   // ==========================================
@@ -90,7 +64,7 @@ export class CalendarComponent implements OnInit {
     
     // Previous month filler
     for (let i = 0; i < startingDay; i++) {
-      this.calendarDays.push({ day: '', disabled: true, events: [] });
+      this.calendarDays.push({ day: '', disabled: true });
     }
     
     // Current month days
@@ -108,8 +82,7 @@ export class CalendarComponent implements OnInit {
         day: i,
         date: dateStr,
         disabled: isPast,
-        isToday: this.isToday(date),
-        events: []
+        isToday: this.isToday(date)
       });
     }
   }
@@ -117,9 +90,6 @@ export class CalendarComponent implements OnInit {
   changeMonth(offset: number) {
     this.currentMonth = new Date(this.currentMonth.setMonth(this.currentMonth.getMonth() + offset));
     this.generateCalendar();
-    if (this.isConnected) {
-      this.fetchMonthEvents();
-    }
   }
 
   isToday(date: Date): boolean {
@@ -133,79 +103,10 @@ export class CalendarComponent implements OnInit {
     return date.toISOString().split('T')[0];
   }
 
-  // ==========================================
-  // GOOGLE CALENDAR LOGIC
-  // ==========================================
-
-  fetchMonthEvents() {
-    const token = this.cookieService.get('calendar_token');
-    if (!token) return;
-
-    const startOfMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
-    const endOfMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0, 23, 59, 59);
-
-    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startOfMonth.toISOString()}&timeMax=${endOfMonth.toISOString()}&singleEvents=true`;
-
-    this.http.get<any>(url, {
-      headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` })
-    }).subscribe({
-      next: (response) => {
-        this.events = response.items || [];
-        this.markDaysWithEvents();
-        if (this.selectedDate) {
-          this.updateSelectedDayEvents();
-          this.generateSlots();
-        }
-      },
-      error: (err) => {
-        if (err.status === 401) {
-          this.isConnected = false;
-          this.cookieService.delete('calendar_token');
-        }
-      }
-    });
-  }
-
-  markDaysWithEvents() {
-    this.calendarDays.forEach(day => {
-      if (!day.disabled) {
-        // Filtrar eventos que caen en este día
-        day.events = this.events.filter(event => {
-          const eventDate = event.start.dateTime ? event.start.dateTime.split('T')[0] : event.start.date;
-          return eventDate === day.date;
-        });
-        // Ordenar por hora
-        day.events.sort((a, b) => {
-          const t1 = a.start.dateTime || a.start.date || '';
-          const t2 = b.start.dateTime || b.start.date || '';
-          return t1.localeCompare(t2);
-        });
-      } else {
-        day.events = [];
-      }
-    });
-  }
-
   selectDate(day: any) {
     if (day.disabled) return;
     this.selectedDate = day.date;
-    this.updateSelectedDayEvents();
     this.generateSlots();
-  }
-
-  updateSelectedDayEvents() {
-    if (!this.selectedDate) {
-      this.selectedDayEvents = [];
-      return;
-    }
-    this.selectedDayEvents = this.events.filter(event => {
-      const eventStart = event.start.dateTime || event.start.date;
-      return eventStart.startsWith(this.selectedDate);
-    }).sort((a, b) => {
-      const t1 = a.start.dateTime || a.start.date;
-      const t2 = b.start.dateTime || b.start.date;
-      return t1.localeCompare(t2);
-    });
   }
 
   // ==========================================
@@ -233,26 +134,9 @@ export class CalendarComponent implements OnInit {
           }
         }
 
-        if (!this.isTimeBlocked(timeString)) {
-          this.availableSlots.push(timeString);
-        }
+        this.availableSlots.push(timeString);
       }
     }
-  }
-
-  isTimeBlocked(timeSlot: string): boolean {
-    const [hours, minutes] = timeSlot.split(':').map(Number);
-    const slotStart = new Date(this.selectedDate);
-    slotStart.setHours(hours, minutes, 0, 0);
-    
-    const slotEnd = new Date(slotStart);
-    slotEnd.setMinutes(slotStart.getMinutes() + 20);
-
-    return this.events.some(event => {
-      const eventStart = new Date(event.start.dateTime || event.start.date);
-      const eventEnd = new Date(event.end.dateTime || event.end.date);
-      return (slotStart < eventEnd && slotEnd > eventStart);
-    });
   }
 
   selectSlot(time: string) {
@@ -260,16 +144,74 @@ export class CalendarComponent implements OnInit {
   }
 
   scheduleAppointment() {
-    if (!this.selectedDate || !this.selectedTime || !this.summary) {
-      alert('Por favor completa todos los campos');
+    if (!this.selectedDate || !this.selectedTime) {
+      this.toastr.warning('Por favor selecciona fecha y hora');
       return;
     }
+
+    // Get User Info
+    const userStr = localStorage.getItem('user');
+    let name = 'Usuario';
+    let email = 'no-email@example.com';
+
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        name = user.firstName || user.name || user.displayName || 'Usuario';
+        email = user.email || 'no-email@example.com';
+      } catch (e) {
+        console.error('Error parsing user', e);
+      }
+    }
+
+    // Construct Start and End Dates
+    const [hours, minutes] = this.selectedTime.split(':').map(Number);
+    const startDate = new Date(this.selectedDate);
+    startDate.setHours(hours, minutes, 0, 0);
+
+    const endDate = new Date(startDate);
+    endDate.setMinutes(startDate.getMinutes() + 20); // 20 min duration
+
+    const body = {
+      name: name,
+      email: email,
+      start: this.formatDateWithOffset(startDate),
+      end: this.formatDateWithOffset(endDate)
+    };
+
+    const token = this.cookieService.get('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.post(`${environment.webhookUrl}/program-date`, body, { headers }).subscribe({
+      next: (res) => {
+        this.toastr.success('Cita agendada correctamente');
+        this.selectedTime = '';
+        this.summary = '';
+      },
+      error: (err) => {
+        console.error(err);
+        this.toastr.error('Error al agendar la cita');
+      }
+    });
+  }
+
+  formatDateWithOffset(date: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const pad3 = (n: number) => n.toString().padStart(3, '0');
     
-    // Aquí iría la lógica para crear el evento en Google Calendar si tuviéramos el scope de escritura
-    // O enviarlo al backend
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+    const ms = pad3(date.getMilliseconds());
     
-    alert(`Cita agendada para el ${this.selectedDate} a las ${this.selectedTime}`);
-    this.selectedTime = '';
-    this.summary = '';
+    const timezoneOffset = -date.getTimezoneOffset();
+    const sign = timezoneOffset >= 0 ? '+' : '-';
+    const offsetHours = pad(Math.floor(Math.abs(timezoneOffset) / 60));
+    const offsetMinutes = pad(Math.abs(timezoneOffset) % 60);
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}${sign}${offsetHours}:${offsetMinutes}`;
   }
 }

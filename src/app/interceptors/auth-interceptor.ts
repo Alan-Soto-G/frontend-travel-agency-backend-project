@@ -10,11 +10,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const cookieService = inject(CookieService);
   const token = cookieService.get('token');
 
-  // Ignorar peticiones a APIs externas (como Google Calendar)
-  if (req.url.includes('googleapis.com')) {
-    return next(req);
-  }
-
   // Agregar token a la petición si existe
   let authReq = req;
   if (token) {
@@ -28,8 +23,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // Manejar errores
   return next(authReq).pipe(
     catchError((error) => {
-      // Solo cerrar sesión si el 401 viene de nuestra propia API (o no es de Google)
-      if (error.status === 401 && !req.url.includes('googleapis.com')) {
+      // Solo cerrar sesión si el 401 viene de nuestra propia API
+      if (error.status === 401) {
         // Token inválido o expirado
         cookieService.delete('token', '/');
         sessionStorage.removeItem('user');

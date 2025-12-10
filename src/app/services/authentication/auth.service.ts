@@ -42,37 +42,6 @@ export class AuthService {
   }
 
   /**
-   * Solicitar permisos de Google Calendar
-   */
-  async linkGoogleCalendar() {
-    const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
-    provider.addScope('https://www.googleapis.com/auth/calendar.events'); // Para poder agendar
-    
-    try {
-      const result = await signInWithPopup(this.auth, provider);
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      
-      if (credential?.accessToken) {
-        // Guardar token de Google en cookie (separado del token de sesión)
-        // Usamos un nombre distinto para evitar conflictos con el token principal
-        this.cookieService.set('calendar_token', credential.accessToken, {
-          path: '/',
-          expires: 0.04, // ~1 hora (1/24 días), ya que el token de Google expira en 1h
-          secure: false
-        });
-        this.toastr.success('Calendario conectado exitosamente', 'Google Calendar');
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Error linking Google Calendar', error);
-      this.toastr.error('No se pudo conectar con Google Calendar', 'Error');
-      return false;
-    }
-  }
-
-  /**
    * Login con GitHub
    */
   async loginWithGithub() {
